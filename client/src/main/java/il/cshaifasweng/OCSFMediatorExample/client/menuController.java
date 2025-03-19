@@ -71,9 +71,10 @@ public class menuController {
                 (obs, oldSelection, newSelection) -> showDishImage(newSelection)
         );
 
-        searchCategoryChoiceBox.getItems().addAll("All", "Restaurant", "Ingredient", "Branch");
-        searchCategoryChoiceBox.setValue("All");
-
+        if(searchCategoryChoiceBox.getItems().isEmpty()) {
+            searchCategoryChoiceBox.getItems().addAll("All", "Restaurant", "Ingredient", "Branch");
+            searchCategoryChoiceBox.setValue("All");
+        }
         searchButton.setOnAction(event -> searchDishes());
         backButton.setOnAction(event -> SimpleClient.getClient().navigateTo("customerHomeView"));
 

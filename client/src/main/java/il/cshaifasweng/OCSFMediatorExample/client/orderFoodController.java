@@ -66,10 +66,10 @@ public class orderFoodController {
         deliveryColumn.setCellValueFactory(cellData -> new SimpleBooleanProperty(cellData.getValue().isDeliveryAvailable()));
 
         menuTableView.setItems(dishList);
-
-        searchCategoryChoiceBox.getItems().addAll("All", "Restaurant", "Ingredient", "Branch");
-        searchCategoryChoiceBox.setValue("All");
-
+        if(searchCategoryChoiceBox.getItems().isEmpty()) {
+            searchCategoryChoiceBox.getItems().addAll("All", "Restaurant", "Ingredient", "Branch");
+            searchCategoryChoiceBox.setValue("All");
+        }
         backButton.setOnAction(event -> SimpleClient.getClient().navigateTo("customerHomeView"));
         searchButton.setOnAction(event -> searchDishes());
 

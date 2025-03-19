@@ -126,12 +126,12 @@ public class MomServer extends AbstractServer {
                 session.save(restaurant);
                 session.flush();
 
-                System.out.println("✅ Test restaurant added: " + restaurant.getName());
+                System.out.println("Test restaurant added: " + restaurant.getName());
 
                 // Check if any dish exists
                 List<Dish> dishList = session.createQuery("FROM Dish", Dish.class).getResultList();
                 if (dishList.isEmpty()) {
-                    System.out.println("⚠️ No dishes found! Adding test dish...");
+                    System.out.println("No dishes found! Adding test dish...");
                     Dish dish = new Dish(
                             "pizza",
                             "Spaghetti, Eggs, Pecorino Romano cheese, pancetta, and black pepper",
@@ -155,14 +155,14 @@ public class MomServer extends AbstractServer {
                     session.save(dish);
                     session.flush();
 
-                    System.out.println("✅ Test dish added: " + dish.getName());
+                    System.out.println("Test dish added: " + dish.getName());
 
                     // Link dish to the restaurant in menu_dish
                     MenuDish menuDish = new MenuDish(restaurant, dish);
                     session.save(menuDish);
                     session.flush();
 
-                    System.out.println("✅ Linked " + dish.getName() + " to " + restaurant.getName());
+                    System.out.println("Linked " + dish.getName() + " to " + restaurant.getName());
                 }
             }
 
@@ -171,7 +171,7 @@ public class MomServer extends AbstractServer {
             if (session != null) {
                 session.getTransaction().rollback();
             }
-            System.err.println("❌ ERROR: Failed to add test restaurant and dish!");
+            System.err.println("ERROR: Failed to add test restaurant and dish!");
             e.printStackTrace();
         } finally {
             if (session != null) {
@@ -190,7 +190,7 @@ public class MomServer extends AbstractServer {
 
         String msgString = msg.toString();
         if (msgString.equals("getMenu")) {
-            System.out.println("✅ Server received 'getMenu' request.");
+            System.out.println("Server received 'getMenu' request.");
 
             try {
                 Session session = sessionFactory.openSession();
@@ -204,20 +204,20 @@ public class MomServer extends AbstractServer {
                 session.close();
 
                 if (dishes.isEmpty()) {
-                    System.out.println("⚠️ [ERROR] No dishes found in database.");
+                    System.out.println("[ERROR] No dishes found in database.");
                 } else {
-                    System.out.println("✅ [DEBUG] Total Dishes in DB: " + dishes.size());
+                    System.out.println("[DEBUG] Total Dishes in DB: " + dishes.size());
                     for (Dish dish : dishes) {
-                        System.out.println("   🍽 Dish: " + dish.getName());
+                        System.out.println("Dish: " + dish.getName());
                     }
                 }
 
                 if (menuDishes.isEmpty()) {
-                    System.out.println("⚠️ [ERROR] No menu links found in database.");
+                    System.out.println("[ERROR] No menu links found in database.");
                 } else {
-                    System.out.println("✅ [DEBUG] Total Menu Links in DB: " + menuDishes.size());
+                    System.out.println("[DEBUG] Total Menu Links in DB: " + menuDishes.size());
                     for (MenuDish md : menuDishes) {
-                        System.out.println("   🔗 Dish: " + md.getDish().getName() + " -> Restaurant: " + md.getRestaurant().getName());
+                        System.out.println("Dish: " + md.getDish().getName() + " -> Restaurant: " + md.getRestaurant().getName());
                     }
                 }
 
@@ -225,7 +225,7 @@ public class MomServer extends AbstractServer {
                 client.sendToClient(response);
 
             } catch (Exception e) {
-                System.err.println("❌ ERROR: Failed to fetch dishes!");
+                System.err.println("ERROR: Failed to fetch dishes!");
                 e.printStackTrace();
             }
         }
@@ -233,7 +233,7 @@ public class MomServer extends AbstractServer {
 
 
         else if (msgString.equals("getRestaurants")) {
-            System.out.println("✅ Server received 'getRestaurants' request!");
+            System.out.println("Server received 'getRestaurants' request!");
 
             List<Restaurant> restaurantList = null;
 
@@ -280,7 +280,7 @@ public class MomServer extends AbstractServer {
 
         else if (msgString.startsWith("getMenuForRestaurant:")) {
             String restaurantName = msgString.replace("getMenuForRestaurant:", "").trim();
-            System.out.println("✅ Server received 'getMenuForRestaurant' request for: " + restaurantName);
+            System.out.println("Server received 'getMenuForRestaurant' request for: " + restaurantName);
 
             try {
                 Session session = sessionFactory.openSession();
@@ -300,15 +300,15 @@ public class MomServer extends AbstractServer {
                 session.getTransaction().commit();
                 session.close();
 
-                System.out.println("✅ [DEBUG] Preparing to send `MenuResponse` to client.");
+                System.out.println("[DEBUG] Preparing to send `MenuResponse` to client.");
                 MenuResponse response = new MenuResponse(dishes, menuDishes);
 
-                System.out.println("✅ [DEBUG] Sending `MenuResponse`...");
+                System.out.println("[DEBUG] Sending `MenuResponse`...");
                 client.sendToClient(response);
-                System.out.println("✅ [DEBUG] `MenuResponse` sent successfully!");
+                System.out.println("{DEBUG] `MenuResponse` sent successfully!");
 
             } catch (Exception e) {
-                System.err.println("❌ ERROR: Failed to fetch menu for restaurant!");
+                System.err.println("ERROR: Failed to fetch menu for restaurant!");
                 e.printStackTrace();
             }
         }
