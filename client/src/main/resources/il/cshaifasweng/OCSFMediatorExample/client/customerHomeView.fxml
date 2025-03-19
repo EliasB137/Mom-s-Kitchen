@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
+
+<VBox spacing="15" alignment="CENTER" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.customerHomeController">
+    <Label text="Customer Home - Select an Action" style="-fx-font-size: 16px;"/>
+
+    <Button fx:id="viewMenuButton" text="View Menu" prefWidth="200"/>
+    <Button fx:id="orderFoodButton" text="Order Food" prefWidth="200"/>
+    <Button fx:id="reserveTableButton" text="Reserve a Table" prefWidth="200"/>
+    <Button fx:id="feedbackButton" text="Feedback" prefWidth="200"/>
+    <Button fx:id="backButton" text="Back" prefWidth="200"/>
+
+</VBox>

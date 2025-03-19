@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
+
+<VBox spacing="15" alignment="CENTER" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.menuController">
+    <Label text="Menu" style="-fx-font-size: 16px;"/>
+
+    <HBox spacing="10">
+        <ChoiceBox fx:id="searchCategoryChoiceBox"/>
+        <TextField fx:id="searchTextField" promptText="Search..."/>
+        <Button fx:id="searchButton" text="Search"/>
+    </HBox>
+
+    <TableView fx:id="menuTableView">
+        <columns>
+            <TableColumn fx:id="nameColumn" text="Name"/>
+            <TableColumn fx:id="ingredientsColumn" text="Ingredients"/>
+            <TableColumn fx:id="preferenceColumn" text="Preferences"/>
+            <TableColumn fx:id="priceColumn" text="Price"/>
+            <TableColumn fx:id="deliveryColumn" text="Delivery"/>
+        </columns>
+    </TableView>
+
+    <ImageView fx:id="dishImageView" fitWidth="200" fitHeight="200" preserveRatio="true"/>
+
+    <Button fx:id="backButton" text="Back"/>
+</VBox>

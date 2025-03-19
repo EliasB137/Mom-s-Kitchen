@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane xmlns:fx="http://javafx.com/fxml" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.dishViewController">
+    <VBox alignment="CENTER" spacing="10">
+        <Label fx:id="dishNameLabel" style="-fx-font-size: 24px; -fx-font-weight: bold;" />
+        <ImageView fx:id="dishImageView" fitWidth="300" fitHeight="200" />
+        <Label fx:id="dishIngredientsLabel" wrapText="true" />
+        <Label fx:id="dishPreferencesLabel" wrapText="true" />
+        <Label fx:id="dishPriceLabel" />
+        <Label fx:id="dishDeliveryLabel" />
+
+        <HBox spacing="10">
+            <Button fx:id="addToCartButton" text="Add to Cart" />
+            <Button fx:id="backButton" text="Back to Menu" />
+        </HBox>
+    </VBox>
+</AnchorPane>

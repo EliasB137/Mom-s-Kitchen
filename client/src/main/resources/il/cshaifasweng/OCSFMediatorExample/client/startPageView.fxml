@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
+
+<VBox spacing="15" alignment="CENTER" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.startPageController">
+        <Label text="Welcome! Please select a restaurant:"/>
+
+        <ChoiceBox fx:id="restaurantChoiceBox" prefWidth="200"/>
+
+        <Button fx:id="adminSignInButton" text="Admin Sign In" prefWidth="150"/>
+        <Button fx:id="viewOrderButton" text="View Order" prefWidth="150"/>
+        <Button fx:id="continueButton" text="Continue" prefWidth="150"/>
+        <Button fx:id="exitButton" text="Exit" prefWidth="150"/>
+
+        <Label fx:id="statusLabel" style="-fx-text-fill: red;"/>
+</VBox>
