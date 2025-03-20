@@ -16,7 +16,11 @@
         </columns>
     </TableView>
 
-    <Button fx:id="checkoutButton" text="Checkout" />
-    <Button fx:id="clearCartButton" text="Clear Cart" />
-    <Button fx:id="backButton" text="Back" />
+    <Label fx:id="totalPriceLabel" text="Total: $" style="-fx-font-size: 16px; -fx-font-weight: bold;" />
+
+    <HBox spacing="10">
+        <Button fx:id="checkoutButton" text="Checkout" />
+        <Button fx:id="clearCartButton" text="Clear Cart" />
+        <Button fx:id="backButton" text="Back" />
+    </HBox>
 </VBox>

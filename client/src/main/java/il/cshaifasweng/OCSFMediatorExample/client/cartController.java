@@ -17,7 +17,7 @@ public class cartController {
     @FXML private Button checkoutButton;
     @FXML private Button clearCartButton;
     @FXML private Button backButton;
-
+    @FXML private Label totalPriceLabel;
     private ObservableList<Dish> cartList = FXCollections.observableArrayList();
 
     @FXML
@@ -29,7 +29,7 @@ public class cartController {
         cartTable.setItems(cartList);
 
         addRemoveButtonToTable();
-
+        updateTotalPrice();
         clearCartButton.setOnAction(event -> handleClearCart());
         checkoutButton.setOnAction(event -> handleCheckout());
         backButton.setOnAction(event -> SimpleClient.getClient().navigateTo("customerHomeView"));
@@ -60,6 +60,7 @@ public class cartController {
 
     private void handleRemoveDish(Dish dish) {
         SimpleClient.removeFromCart(dish);
+        updateTotalPrice();
         cartList.setAll(SimpleClient.getCart());
         System.out.println("[DEBUG] Removed from cart: " + dish.getName());
     }
@@ -67,11 +68,16 @@ public class cartController {
     private void handleClearCart() {
         SimpleClient.clearCart();
         cartList.clear();
+        updateTotalPrice();
         System.out.println("[DEBUG] Cart cleared.");
     }
-
+    private void updateTotalPrice() {
+        double total = SimpleClient.getCart().stream()
+                .mapToDouble(dish -> Double.parseDouble(dish.getPrice()))
+                .sum();
+        totalPriceLabel.setText("Total: $" + String.format("%.2f", total)); // ✅ Display total price
+    }
     private void handleCheckout() {
-        System.out.println("[DEBUG] Checkout initiated with " + cartList.size() + " items.");
-        // TODO: Send cart to server and process payment.
+
     }
 }
