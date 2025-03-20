@@ -75,9 +75,9 @@ public class cartController {
         double total = SimpleClient.getCart().stream()
                 .mapToDouble(dish -> Double.parseDouble(dish.getPrice()))
                 .sum();
-        totalPriceLabel.setText("Total: $" + String.format("%.2f", total)); // ✅ Display total price
+        totalPriceLabel.setText("Total: $" + String.format("%.2f", total)); //Display total price
     }
     private void handleCheckout() {
-
+    // take the user to the fill details screen in order to fill the details and complete the order
     }
 }
