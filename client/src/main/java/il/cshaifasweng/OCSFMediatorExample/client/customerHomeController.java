@@ -20,6 +20,10 @@ public class customerHomeController {
     @FXML
     private Button backButton;
 
+    @FXML
+    private Button viewCartButton;
+
+
     private String selectedRestaurant;
 
     @FXML
@@ -30,6 +34,7 @@ public class customerHomeController {
         reserveTableButton.setOnAction(_ -> SimpleClient.getClient().navigateTo("reservetableView"));
         feedbackButton.setOnAction(event -> SimpleClient.getClient().navigateTo("feedbackView"));
         backButton.setOnAction(event -> SimpleClient.getClient().navigateTo("startPageView"));
+        viewCartButton.setOnAction(event -> SimpleClient.getClient().navigateTo("cartView"));
     }
 
     public void setSelectedRestaurant(String restaurant) {

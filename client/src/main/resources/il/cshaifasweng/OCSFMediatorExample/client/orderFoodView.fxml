@@ -24,6 +24,8 @@
     </TableView>
 
     <ImageView fx:id="dishImageView" fitWidth="200" fitHeight="200" preserveRatio="true"/>
-
+    <Button fx:id="viewCartButton" text="Cart" prefWidth="200"/>
     <Button fx:id="backButton" text="Back"/>
+
+
 </VBox>

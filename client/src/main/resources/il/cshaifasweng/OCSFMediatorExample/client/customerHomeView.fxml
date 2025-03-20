@@ -10,6 +10,7 @@
     <Button fx:id="orderFoodButton" text="Order Food" prefWidth="200"/>
     <Button fx:id="reserveTableButton" text="Reserve a Table" prefWidth="200"/>
     <Button fx:id="feedbackButton" text="Feedback" prefWidth="200"/>
+    <Button fx:id="viewCartButton" text="Cart" prefWidth="200"/>
     <Button fx:id="backButton" text="Back" prefWidth="200"/>
 
 </VBox>

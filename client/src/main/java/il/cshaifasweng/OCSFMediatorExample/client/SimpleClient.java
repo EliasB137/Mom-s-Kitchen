@@ -25,9 +25,30 @@ public class SimpleClient extends AbstractClient {
 
 	//keep track of the selected restaurant
 	private static String selectedRestaurant;
-
+	private static List<Dish> cart = new ArrayList<>(); //Store cart locally
 	//keep track of the selected dish
 	private static Dish selectedDish;
+
+	public static void addToCart(Dish dish) {
+		if (dish != null) {
+			cart.add(dish);
+			System.out.println("[DEBUG] Added to cart: " + dish.getName());
+		}
+	}
+
+	public static void removeFromCart(Dish dish) {
+		cart.remove(dish);
+		System.out.println("[DEBUG] Removed from cart: " + dish.getName());
+	}
+
+	public static void clearCart() {
+		cart.clear();
+		System.out.println("[DEBUG] Cart cleared.");
+	}
+
+	public static List<Dish> getCart() {
+		return cart;
+	}
 
 	private SimpleClient(String host, int port) {
 		super(host, port);
@@ -40,6 +61,7 @@ public class SimpleClient extends AbstractClient {
 	}
 	public static void setSelectedRestaurant(String restaurant) {
 		selectedRestaurant = restaurant;
+		clearCart();
 	}
 
 	public static String getSelectedRestaurant() {

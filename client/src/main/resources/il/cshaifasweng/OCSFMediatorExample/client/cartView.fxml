@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox alignment="CENTER" spacing="10" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="il.cshaifasweng.OCSFMediatorExample.client.cartController">
+
+    <Label text="Shopping Cart" style="-fx-font-size: 20px; -fx-font-weight: bold;" />
+
+    <TableView fx:id="cartTable">
+        <columns>
+            <TableColumn fx:id="nameColumn" text="Dish Name" />
+            <TableColumn fx:id="priceColumn" text="Price" />
+            <TableColumn fx:id="removeColumn" text="Remove" />
+        </columns>
+    </TableView>
+
+    <Button fx:id="checkoutButton" text="Checkout" />
+    <Button fx:id="clearCartButton" text="Clear Cart" />
+    <Button fx:id="backButton" text="Back" />
+</VBox>

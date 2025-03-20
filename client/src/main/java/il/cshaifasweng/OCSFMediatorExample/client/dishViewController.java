@@ -58,8 +58,7 @@ public class dishViewController {
         }
     }
     private void handleAddToCart() {
+        SimpleClient.addToCart(selectedDish);
         System.out.println("Added to cart: " + selectedDish.getName());
-        // Implement cart logic here
-        // either implement another sql table or save the cart loccally for the client
     }
 }

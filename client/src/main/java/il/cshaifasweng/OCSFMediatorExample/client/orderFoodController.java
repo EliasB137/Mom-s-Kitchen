@@ -50,6 +50,9 @@ public class orderFoodController {
     @FXML
     private Button backButton;
 
+    @FXML
+    private Button viewCartButton;
+
     private ObservableList<Dish> dishList = FXCollections.observableArrayList();
     private String selectedRestaurant; // Stores the selected restaurant
 
@@ -72,7 +75,7 @@ public class orderFoodController {
         }
         backButton.setOnAction(event -> SimpleClient.getClient().navigateTo("customerHomeView"));
         searchButton.setOnAction(event -> searchDishes());
-
+        viewCartButton.setOnAction(event -> SimpleClient.getClient().navigateTo("cartView"));
 
         // Detect double-click to open dishView
         menuTableView.setOnMouseClicked(event -> {
