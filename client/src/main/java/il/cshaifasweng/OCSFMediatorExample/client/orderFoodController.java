@@ -144,19 +144,23 @@ public class orderFoodController {
     private void searchDishes() {
         String category = searchCategoryChoiceBox.getValue();
         String searchQuery = searchTextField.getText().toLowerCase();
+        if (!searchQuery.isEmpty()) {
+            List<Dish> filteredDishes = dishList.stream()
+                    .filter(dish -> {
+                        if (category.equals("All")) {
+                            return dish.getName().toLowerCase().contains(searchQuery) ||
+                                    dish.getIngredients().toLowerCase().contains(searchQuery);
+                        } else if (category.equals("Ingredient")) {
+                            return dish.getIngredients().toLowerCase().contains(searchQuery);
+                        }
+                        return false;
+                    })
+                    .collect(Collectors.toList());
 
-        List<Dish> filteredDishes = dishList.stream()
-                .filter(dish -> {
-                    if (category.equals("All")) {
-                        return dish.getName().toLowerCase().contains(searchQuery) ||
-                                dish.getIngredients().toLowerCase().contains(searchQuery);
-                    } else if (category.equals("Ingredient")) {
-                        return dish.getIngredients().toLowerCase().contains(searchQuery);
-                    }
-                    return false;
-                })
-                .collect(Collectors.toList());
-
-        menuTableView.setItems(FXCollections.observableArrayList(filteredDishes));
+            menuTableView.setItems(FXCollections.observableArrayList(filteredDishes));
+        }
+        else {
+            initialize();
+        }
     }
 }

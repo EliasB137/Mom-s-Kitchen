@@ -20,7 +20,7 @@ public class MenuDish implements Serializable {
     @JoinColumn(name = "restaurant_id", referencedColumnName = "restaurant_id", nullable = false)
     private Restaurant restaurant;
 
-    @ManyToOne(fetch = FetchType.EAGER, optional = false) // ✅ Prevents LazyInitializationException
+    @ManyToOne(fetch = FetchType.EAGER, optional = false) //Prevents LazyInitializationException
     @JoinColumn(name = "dish_id", referencedColumnName = "dish_id", nullable = false)
     private Dish dish;
 
