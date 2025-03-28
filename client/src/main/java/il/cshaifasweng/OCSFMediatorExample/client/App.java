@@ -68,25 +68,6 @@ public class App extends Application {
     public static Stage getPrimaryStage() {  // Method to access the stage
         return primaryStage;
     }
-    @Subscribe
-    public void onMenuEvent(MenuEvent event) {
-        Platform.runLater(() -> {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("primary.fxml"));
-            Parent root = null;
-            try {
-                root = loader.load();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            Scene scene = new Scene(root, 640, 480);
-            EventBus.getDefault().post(event.getMenu().getArray());
-             primaryStage.setScene(scene);
-            primaryStage.show();
-
-        });
-
-    }
-
 	public static void main(String[] args) {
         launch();
     }
