@@ -4,16 +4,27 @@
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane xmlns:fx="http://javafx.com/fxml" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.dishViewController">
-    <VBox alignment="CENTER" spacing="10">
+<AnchorPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="il.cshaifasweng.OCSFMediatorExample.client.dishViewController"
+            prefWidth="600" prefHeight="600">
+
+    <VBox alignment="CENTER" spacing="15" layoutX="50" layoutY="20" prefWidth="500" AnchorPane.leftAnchor="50" AnchorPane.rightAnchor="50">
         <Label fx:id="dishNameLabel" style="-fx-font-size: 24px; -fx-font-weight: bold;" />
-        <ImageView fx:id="dishImageView" fitWidth="300" fitHeight="200" />
+        <ImageView fx:id="dishImageView" fitWidth="300" fitHeight="200" preserveRatio="true" />
+
         <Label fx:id="dishIngredientsLabel" wrapText="true" />
-        <Label fx:id="dishPreferencesLabel" wrapText="true" />
         <Label fx:id="dishPriceLabel" />
         <Label fx:id="dishDeliveryLabel" />
 
-        <HBox spacing="10">
+        <Label text="Select Preferences:" style="-fx-font-weight: bold;" />
+        <VBox fx:id="preferencesVBox" spacing="5" />
+
+        <HBox spacing="10" alignment="CENTER">
+            <Label text="Quantity:" />
+            <Spinner fx:id="quantitySpinner" prefWidth="80"/>
+        </HBox>
+
+        <HBox spacing="15" alignment="CENTER">
             <Button fx:id="addToCartButton" text="Add to Cart" />
             <Button fx:id="backButton" text="Back to Menu" />
         </HBox>

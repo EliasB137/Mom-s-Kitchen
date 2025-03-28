@@ -1,13 +1,14 @@
 package il.cshaifasweng.OCSFMediatorExample.server;
 
-import il.cshaifasweng.OCSFMediatorExample.client.MenuResponse;
 import il.cshaifasweng.OCSFMediatorExample.client.RestaurantListResponse;
-import il.cshaifasweng.OCSFMediatorExample.entities.*;
+import il.cshaifasweng.OCSFMediatorExample.entities.DTO.*;
+import il.cshaifasweng.OCSFMediatorExample.server.SavingInSql.*;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.AbstractServer;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.ConnectionToClient;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 import java.util.stream.Collectors;
@@ -19,6 +20,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.service.ServiceRegistry;
+
 
 public class MomServer extends AbstractServer {
     private static Session session;
@@ -37,76 +39,7 @@ public class MomServer extends AbstractServer {
         newPassword = scanner.nextLine();
         scanner.close();
         ensureTestDataExists();
-        try {
-            if(getAllDishes().isEmpty())
-            {
-                session = sessionFactory.openSession();
-                session.beginTransaction();
 
-                Dish dish = new Dish(
-                        "Spaghetti Carbonara",
-                        "Spaghetti, Eggs, Pecorino Romano cheese, pancetta, and black pepper",
-                        "Extra Cheese",
-                        "72.00",
-                        "https://example.com/spaghetti_carbonara.jpg",  // Image URL
-                        true // Available for delivery
-                );
-                session.save(dish);
-                session.flush();
-
-                dish = new Dish(
-                        "Caesar Salad",
-                        "Romaine lettuce, croutons, and Caesar dressing",
-                        "No Croutons",
-                        "48.00",
-                        "https://example.com/caesar_salad.jpg",
-                        false
-                );
-                session.save(dish);
-                session.flush();
-
-                dish = new Dish(
-                        "Fettuccine Alfredo",
-                        "Fettuccine pasta, butter, heavy cream, and Parmesan cheese",
-                        "Extra Creamy Sauce",
-                        "64.00",
-                        "https://example.com/fettuccine_alfredo.jpg",
-                        true
-                );
-                session.save(dish);
-                session.flush();
-
-                dish = new Dish(
-                        "Lasagna",
-                        "Pasta sheets, meat or vegetable sauce, ricotta, and mozzarella cheese, topped with marinara sauce",
-                        "Vegetarian Option",
-                        "78.00",
-                        "https://example.com/lasagna.jpg",
-                        true
-                );
-                session.save(dish);
-                session.flush();
-
-                dish = new Dish(
-                        "Ravioli",
-                        "Pasta ravioli stuffed with fillings like ricotta cheese, spinach, or meat, served with marinara or Alfredo sauce",
-                        "Marinara Sauce Only",
-                        "65.00",
-                        "https://example.com/ravioli.jpg",
-                        false
-                );
-                session.save(dish);
-                session.flush();
-
-                session.getTransaction().commit();
-                session.close();
-
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }finally {
-            session.close();
-        }
 
     }
     private void ensureTestDataExists() {
@@ -132,25 +65,16 @@ public class MomServer extends AbstractServer {
                 List<Dish> dishList = session.createQuery("FROM Dish", Dish.class).getResultList();
                 if (dishList.isEmpty()) {
                     System.out.println("No dishes found! Adding test dish...");
-                    Dish dish = new Dish(
-                            "pizza",
+                    Dish dish = new Dish("Spaghetti Carbonara",
                             "Spaghetti, Eggs, Pecorino Romano cheese, pancetta, and black pepper",
-                            "Extra Cheese",
-                            "72.00",
-                            "https://i.imgur.com/vIZKDQW.jpeg",
-                            true
-                    );
-
+                            Arrays.asList("No Pepper", "Extra Cheese", "No tomato"), "72.00",
+                            "https://cdn.loveandlemons.com/wp-content/uploads/2024/12/caesar-salad.jpg", true);
                     session.save(dish);
                     session.flush();
-                     dish = new Dish(
-                            "Spaghetti Carbonara",
-                            "Spaghetti, Eggs, Pecorino Romano cheese, pancetta, and black pepper",
-                            "Extra Cheese",
-                            "72.00",
-                            "https://i.imgur.com/oBoLh3W.jpeg",
-                            true
-                    );
+
+                    dish = new Dish("Caesar Salad", "Romaine lettuce, croutons, and Caesar dressing",
+                            Arrays.asList("No Pepper", "Extra Cheese", "No tomato"), "48.00",
+                            "https://cdn.loveandlemons.com/wp-content/uploads/2024/12/caesar-salad.jpg", false);
 
                     session.save(dish);
                     session.flush();
@@ -197,8 +121,6 @@ public class MomServer extends AbstractServer {
                 session.beginTransaction();
 
                 List<Dish> dishes = session.createQuery("FROM Dish", Dish.class).getResultList();
-                List<MenuDish> menuDishes = session.createQuery("FROM MenuDish md JOIN FETCH md.restaurant", MenuDish.class).getResultList();
-
 
                 session.getTransaction().commit();
                 session.close();
@@ -211,18 +133,22 @@ public class MomServer extends AbstractServer {
                         System.out.println("Dish: " + dish.getName());
                     }
                 }
+                List<dishDTO> dishesDTO = DishDTOConverter.convertToDTOList(dishes);
 
-                if (menuDishes.isEmpty()) {
-                    System.out.println("[ERROR] No menu links found in database.");
+                if (dishesDTO == null) {
+                    System.err.println("[ERROR] dishesDTO is null!");
                 } else {
-                    System.out.println("[DEBUG] Total Menu Links in DB: " + menuDishes.size());
-                    for (MenuDish md : menuDishes) {
-                        System.out.println("Dish: " + md.getDish().getName() + " -> Restaurant: " + md.getRestaurant().getName());
-                    }
+                    System.out.println("[DEBUG] dishesDTO: " + dishesDTO);
                 }
 
-                MenuResponse response = new MenuResponse(dishes, menuDishes);
+                responseDTO response = new responseDTO("MenuResponse",new Object[]{dishesDTO});
                 client.sendToClient(response);
+//                List<dishDTO> testList = new ArrayList<>();
+//                testList.add(new dishDTO(1, "Test", "None", List.of("Extra cheese"), "5.00", "", true));
+//
+//                responseDTO testResponse = new responseDTO("MenuResponse", new Object[]{testList});
+//                client.sendToClient(testResponse);
+
 
             } catch (Exception e) {
                 System.err.println("ERROR: Failed to fetch dishes!");
@@ -292,26 +218,31 @@ public class MomServer extends AbstractServer {
                         .setParameter("restaurantName", restaurantName)
                         .getResultList();
 
-                List<Dish> dishes = menuDishes.stream()
-                        .map(MenuDish::getDish)
-                        .distinct()
-                        .collect(Collectors.toList());
-
                 session.getTransaction().commit();
                 session.close();
 
-                System.out.println("[DEBUG] Preparing to send `MenuResponse` to client.");
-                MenuResponse response = new MenuResponse(dishes, menuDishes);
+                List<MenuItemDTO> menuItemDTOs = menuDishes.stream()
+                        .map(md -> new MenuItemDTO(new dishDTO(md.getDish().getId(),
+                                md.getDish().getName(),
+                                md.getDish().getIngredients(),
+                                md.getDish().getAvailablePreferences(),
+                                md.getDish().getPrice(),
+                                md.getDish().getImageUrl(),
+                                md.getDish().isDeliveryAvailable())
+                                , md.getRestaurant().getName()))
+                        .collect(Collectors.toList());
 
-                System.out.println("[DEBUG] Sending `MenuResponse`...");
+                System.out.println("[DEBUG] Sending menuItemDTOs with size: " + menuItemDTOs.size());
+
+                responseDTO response = new responseDTO("menu", new Object[]{menuItemDTOs});
                 client.sendToClient(response);
-                System.out.println("{DEBUG] `MenuResponse` sent successfully!");
 
             } catch (Exception e) {
                 System.err.println("ERROR: Failed to fetch menu for restaurant!");
                 e.printStackTrace();
             }
         }
+
 
 
 

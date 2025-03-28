@@ -1,15 +1,15 @@
-package il.cshaifasweng.OCSFMediatorExample.entities;
+package il.cshaifasweng.OCSFMediatorExample.server.SavingInSql;
+
+import il.cshaifasweng.OCSFMediatorExample.entities.DTO.Restaurant;
 
 import javax.persistence.*;
-import java.io.Serializable;
 import java.util.Objects;
 
 @Entity
 @Table(name = "menu_dish", uniqueConstraints = {
         @UniqueConstraint(columnNames = {"restaurant_id", "dish_id"})
 })
-public class MenuDish implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class MenuDish {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

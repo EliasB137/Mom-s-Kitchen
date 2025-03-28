@@ -1,13 +1,11 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
-import il.cshaifasweng.OCSFMediatorExample.entities.Dish;
-import javafx.collections.FXCollections;
+import il.cshaifasweng.OCSFMediatorExample.entities.DTO.dishDTO;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.control.cell.PropertyValueFactory;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
@@ -60,12 +58,11 @@ public class updateDishController {
     }
 
     @Subscribe
-    public void putDishDetails(Dish dish) {
+    public void putDishDetails(dishDTO dish) {
         dishID.setText("ID : " + String.valueOf(dish.getId()));
         dishIngredients.setText("Ingredients : " + dish.getIngredients());
         dishName.setText("Name : " + dish.getName());
         dishPrice.setText("Price : " + dish.getPrice());
-        dishPersonalPrefrence.setText("Personal Prefrences : " + dish.getPersonalPreference());
     }
 
 }

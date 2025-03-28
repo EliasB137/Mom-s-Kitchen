@@ -1,8 +1,6 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
-import il.cshaifasweng.OCSFMediatorExample.entities.Dish;
-import il.cshaifasweng.OCSFMediatorExample.entities.Restaurant;
-import il.cshaifasweng.OCSFMediatorExample.entities.MenuDish;
+import il.cshaifasweng.OCSFMediatorExample.entities.DTO.dishDTO;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -19,50 +17,29 @@ import java.util.stream.Collectors;
 
 public class menuController {
 
-    @FXML
-    private TableView<Dish> menuTableView;
+    @FXML private TableView<dishDTO> menuTableView;
+    @FXML private TableColumn<dishDTO, String> nameColumn;
+    @FXML private TableColumn<dishDTO, String> ingredientsColumn;
+    @FXML private TableColumn<dishDTO, String> priceColumn;
+    @FXML private TableColumn<dishDTO, Boolean> deliveryColumn;
 
-    @FXML
-    private TableColumn<Dish, String> nameColumn;
+    @FXML private ImageView dishImageView;
 
-    @FXML
-    private TableColumn<Dish, String> ingredientsColumn;
+    @FXML private ChoiceBox<String> searchCategoryChoiceBox;
+    @FXML private TextField searchTextField;
+    @FXML private Button searchButton;
+    @FXML private Button backButton;
 
-    @FXML
-    private TableColumn<Dish, String> preferenceColumn;
-
-    @FXML
-    private TableColumn<Dish, String> priceColumn;
-
-    @FXML
-    private TableColumn<Dish, Boolean> deliveryColumn;
-
-    @FXML
-    private ImageView dishImageView;
-
-    @FXML
-    private ChoiceBox<String> searchCategoryChoiceBox;
-
-    @FXML
-    private TextField searchTextField;
-
-    @FXML
-    private Button searchButton;
-
-    @FXML
-    private Button backButton;
-
-    private ObservableList<Dish> dishList = FXCollections.observableArrayList();
+    private ObservableList<dishDTO> dishList = FXCollections.observableArrayList();
 
     public menuController() {
-        EventBus.getDefault().register(this); // Subscribe to EventBus
+        EventBus.getDefault().register(this);
     }
 
     @FXML
     public void initialize() {
         nameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getName()));
         ingredientsColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getIngredients()));
-        preferenceColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getPersonalPreference()));
         priceColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getPrice()));
         deliveryColumn.setCellValueFactory(cellData -> new SimpleBooleanProperty(cellData.getValue().isDeliveryAvailable()));
 
@@ -71,10 +48,11 @@ public class menuController {
                 (obs, oldSelection, newSelection) -> showDishImage(newSelection)
         );
 
-        if(searchCategoryChoiceBox.getItems().isEmpty()) {
-            searchCategoryChoiceBox.getItems().addAll("All", "Restaurant", "Ingredient", "Branch");
+        if (searchCategoryChoiceBox.getItems().isEmpty()) {
+            searchCategoryChoiceBox.getItems().addAll("All", "Ingredient");
             searchCategoryChoiceBox.setValue("All");
         }
+
         searchButton.setOnAction(event -> searchDishes());
         backButton.setOnAction(event -> SimpleClient.getClient().navigateTo("customerHomeView"));
 
@@ -84,26 +62,25 @@ public class menuController {
     private void requestMenuData() {
         try {
             SimpleClient.getClient().sendToServer("getMenu");
+        } catch (Exception e) {
+            System.err.println("Error requesting menu data: " + e.getMessage());
         }
-        catch (Exception e) {}
     }
 
     @Subscribe
-    public void loadDishes(MenuResponse event) {
-        if (event.getDishes() == null || event.getDishes().isEmpty()) {
-            System.out.println("No dishes available.");
+    public void loadDishes(List<dishDTO> event) {
+        if (event == null || event.isEmpty()) {
+            System.out.println("⚠️ No dishes available.");
             return;
         }
 
-        System.out.println("Received " + event.getDishes().size() + " dishes from server.");
-        dishList.setAll(event.getDishes());
-        SimpleClient.setMenuDishes(event.getMenuDishes()); // Store MenuDish for searching
+        System.out.println("✅ Received " + event.size() + " dishes from server.");
+        dishList.setAll(event);
         menuTableView.refresh();
     }
 
-
-    private void showDishImage(Dish dish) {
-        if (dish != null && dish.getImageUrl() != null) {
+    private void showDishImage(dishDTO dish) {
+        if (dish != null && dish.getImageUrl() != null && !dish.getImageUrl().isEmpty()) {
             dishImageView.setImage(new Image(dish.getImageUrl()));
         }
     }
@@ -113,46 +90,21 @@ public class menuController {
         String searchQuery = searchTextField.getText().toLowerCase();
 
         if (!searchQuery.isEmpty()) {
-            List<Dish> filteredDishes = dishList.stream()
+            List<dishDTO> filtered = dishList.stream()
                     .filter(dish -> {
                         if (category.equals("All")) {
                             return dish.getName().toLowerCase().contains(searchQuery) ||
                                     dish.getIngredients().toLowerCase().contains(searchQuery);
-                        } else if (category.equals("Restaurant")) {
-                            System.out.println("[DEBUG] Checking dish: " + dish.getName());
-
-                            // Fetch associated restaurants from MenuDish
-                            List<MenuDish> menuDishes = SimpleClient.getClient().getMenuDishes();
-                            for (MenuDish md : menuDishes) {
-                                if (md.getDish().equals(dish) &&
-                                        md.getRestaurant().getName().toLowerCase().contains(searchQuery)) {
-                                    return true;
-                                }
-                            }
                         } else if (category.equals("Ingredient")) {
                             return dish.getIngredients().toLowerCase().contains(searchQuery);
-                        } else if (category.equals("Branch")) {
-                            System.out.println("[DEBUG] Searching Branch for " + dish.getName());
-
-                            // Fetch branch data
-                            List<MenuDish> menuDishes = SimpleClient.getClient().getMenuDishes();
-                            for (MenuDish md : menuDishes) {
-                                if (md.getDish().equals(dish) &&
-                                        md.getRestaurant().getLocation().toLowerCase().contains(searchQuery)) {
-                                    return true;
-                                }
-                            }
                         }
                         return false;
                     })
                     .collect(Collectors.toList());
 
-            menuTableView.setItems(FXCollections.observableArrayList(filteredDishes));
-        }
-        else {
-            initialize();
+            menuTableView.setItems(FXCollections.observableArrayList(filtered));
+        } else {
+            menuTableView.setItems(dishList); // restore full list
         }
     }
-
-
 }

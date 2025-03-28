@@ -1,4 +1,4 @@
-package il.cshaifasweng.OCSFMediatorExample.entities;
+package il.cshaifasweng.OCSFMediatorExample.entities.DTO;
 
 import javax.persistence.*;
 import java.io.Serializable;

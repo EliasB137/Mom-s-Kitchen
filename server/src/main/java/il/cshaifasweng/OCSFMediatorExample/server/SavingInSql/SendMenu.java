@@ -1,7 +1,6 @@
-package il.cshaifasweng.OCSFMediatorExample.entities;
+package il.cshaifasweng.OCSFMediatorExample.server.SavingInSql;
 
 import java.io.Serializable;
-import java.time.LocalTime;
 import java.util.List;
 
 public class SendMenu implements Serializable {   // ✅ Ensures it can be sent over the network

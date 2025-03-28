@@ -1,12 +1,12 @@
-package il.cshaifasweng.OCSFMediatorExample.entities;
+package il.cshaifasweng.OCSFMediatorExample.server.SavingInSql;
 
 import javax.persistence.*;
-import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "dishes")
-public class Dish implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class Dish {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,8 +19,11 @@ public class Dish implements Serializable {
     @Column(name = "ingredients", columnDefinition = "TEXT")
     private String ingredients;
 
-    @Column(name = "personalPreference", columnDefinition = "TEXT")
-    private String personalPreference;
+    // List of predefined preferences for this dish (e.g. "No Tomato", "Extra Cheese")
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "dish_preferences", joinColumns = @JoinColumn(name = "dish_id"))
+    @Column(name = "preference")
+    private List<String> availablePreferences = new ArrayList<>();
 
     @Column(name = "price", nullable = false)
     private String price;
@@ -34,29 +37,30 @@ public class Dish implements Serializable {
     // Default constructor
     public Dish() {}
 
-    // Constructor
-    public Dish(String name, String ingredients, String personalPreference, String price, String imageUrl, boolean deliveryAvailable) {
+    public Dish(String name, String ingredients, List<String> availablePreferences, String price, String imageUrl, boolean deliveryAvailable) {
         this.name = name;
         this.ingredients = ingredients;
-        this.personalPreference = personalPreference;
         this.price = price;
-        this.imageUrl = imageUrl;
         this.deliveryAvailable = deliveryAvailable;
+        this.availablePreferences = availablePreferences;
+        this.imageUrl = imageUrl;
     }
+
 
     // Getters and setters
     public int getId() { return id; }
+
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
     public String getIngredients() { return ingredients; }
     public void setIngredients(String ingredients) { this.ingredients = ingredients; }
 
+    public List<String> getAvailablePreferences() { return availablePreferences; }
+    public void setAvailablePreferences(List<String> availablePreferences) { this.availablePreferences = availablePreferences; }
+
     public String getPrice() { return price; }
     public void setPrice(String price) { this.price = price; }
-
-    public String getPersonalPreference() { return personalPreference; }
-    public void setPersonalPreference(String personalPreference) { this.personalPreference = personalPreference; }
 
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }

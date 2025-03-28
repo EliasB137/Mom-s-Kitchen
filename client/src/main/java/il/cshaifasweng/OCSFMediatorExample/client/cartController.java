@@ -1,35 +1,51 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
-import il.cshaifasweng.OCSFMediatorExample.entities.Dish;
+import il.cshaifasweng.OCSFMediatorExample.entities.DTO.dishDTO;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.HBox;
 
 public class cartController {
 
-    @FXML private TableView<Dish> cartTable;
-    @FXML private TableColumn<Dish, String> nameColumn;
-    @FXML private TableColumn<Dish, String> priceColumn;
-    @FXML private TableColumn<Dish, Void> removeColumn; //Column for remove buttons
+    @FXML private TableView<CartItem> cartTable;
+    @FXML private TableColumn<CartItem, String> nameColumn;
+    @FXML private TableColumn<CartItem, String> preferencesColumn;
+    @FXML private TableColumn<CartItem, Integer> quantityColumn;
+    @FXML private TableColumn<CartItem, String> totalPriceColumn;
+    @FXML private TableColumn<CartItem, Void> removeColumn;
+
     @FXML private Button checkoutButton;
     @FXML private Button clearCartButton;
     @FXML private Button backButton;
+
     @FXML private Label totalPriceLabel;
-    private ObservableList<Dish> cartList = FXCollections.observableArrayList();
+
+    private ObservableList<CartItem> cartList = FXCollections.observableArrayList();
 
     @FXML
     public void initialize() {
-        nameColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getName()));
-        priceColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getPrice()));
+        // Set column cell value factories
+        nameColumn.setCellValueFactory(cellData ->
+                new SimpleStringProperty(cellData.getValue().getDish().getName()));
+
+        preferencesColumn.setCellValueFactory(cellData ->
+                new SimpleStringProperty(String.join(", ", cellData.getValue().getPreferences())));
+
+        quantityColumn.setCellValueFactory(cellData ->
+                new SimpleIntegerProperty(cellData.getValue().getQuantity()).asObject());
+
+        totalPriceColumn.setCellValueFactory(cellData ->
+                new SimpleStringProperty(String.format("%.2f", cellData.getValue().getTotalPrice())));
 
         cartList.setAll(SimpleClient.getCart());
         cartTable.setItems(cartList);
 
         addRemoveButtonToTable();
         updateTotalPrice();
+
         clearCartButton.setOnAction(event -> handleClearCart());
         checkoutButton.setOnAction(event -> handleCheckout());
         backButton.setOnAction(event -> SimpleClient.getClient().navigateTo("customerHomeView"));
@@ -41,28 +57,24 @@ public class cartController {
 
             {
                 removeButton.setOnAction(event -> {
-                    Dish dish = getTableView().getItems().get(getIndex());
-                    handleRemoveDish(dish);
+                    CartItem item = getTableView().getItems().get(getIndex());
+                    handleRemoveItem(item);
                 });
             }
 
             @Override
             protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty) {
-                    setGraphic(null);
-                } else {
-                    setGraphic(removeButton);
-                }
+                setGraphic(empty ? null : removeButton);
             }
         });
     }
 
-    private void handleRemoveDish(Dish dish) {
-        SimpleClient.removeFromCart(dish);
-        updateTotalPrice();
+    private void handleRemoveItem(CartItem item) {
+        SimpleClient.removeFromCart(item);
         cartList.setAll(SimpleClient.getCart());
-        System.out.println("[DEBUG] Removed from cart: " + dish.getName());
+        updateTotalPrice();
+        System.out.println("[DEBUG] Removed from cart: " + item.getDish().getName());
     }
 
     private void handleClearCart() {
@@ -71,13 +83,16 @@ public class cartController {
         updateTotalPrice();
         System.out.println("[DEBUG] Cart cleared.");
     }
+
     private void updateTotalPrice() {
         double total = SimpleClient.getCart().stream()
-                .mapToDouble(dish -> Double.parseDouble(dish.getPrice()))
+                .mapToDouble(CartItem::getTotalPrice)
                 .sum();
-        totalPriceLabel.setText("Total: $" + String.format("%.2f", total)); //Display total price
+        totalPriceLabel.setText("Total: $" + String.format("%.2f", total));
     }
+
     private void handleCheckout() {
-    // take the user to the fill details screen in order to fill the details and complete the order
+        System.out.println("Checkout pressed - TODO: implement order submission.");
+        // Navigate to details form or confirmation page (not implemented here)
     }
 }

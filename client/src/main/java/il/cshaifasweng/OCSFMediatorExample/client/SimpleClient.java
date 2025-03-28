@@ -1,20 +1,19 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
-import il.cshaifasweng.OCSFMediatorExample.entities.Dish;
-import il.cshaifasweng.OCSFMediatorExample.entities.MenuDish;
+import il.cshaifasweng.OCSFMediatorExample.entities.DTO.dishDTO;
+import il.cshaifasweng.OCSFMediatorExample.entities.DTO.MenuItemDTO;
+import il.cshaifasweng.OCSFMediatorExample.entities.DTO.*;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import org.greenrobot.eventbus.EventBus;
 import il.cshaifasweng.OCSFMediatorExample.client.ocsf.AbstractClient;
-import il.cshaifasweng.OCSFMediatorExample.entities.Restaurant;
+import il.cshaifasweng.OCSFMediatorExample.entities.DTO.Restaurant;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 
 public class SimpleClient extends AbstractClient {
@@ -25,20 +24,24 @@ public class SimpleClient extends AbstractClient {
 
 	//keep track of the selected restaurant
 	private static String selectedRestaurant;
-	private static List<Dish> cart = new ArrayList<>(); //Store cart locally
-	//keep track of the selected dish
-	private static Dish selectedDish;
+	private static List<CartItem> cart = new ArrayList<>();
 
-	public static void addToCart(Dish dish) {
-		if (dish != null) {
-			cart.add(dish);
-			System.out.println("[DEBUG] Added to cart: " + dish.getName());
-		}
+	//keep track of the selected dish
+	private static dishDTO selectedDish;
+
+	public static void addToCart(dishDTO dish, List<String> preferences, int quantity) {
+		CartItem item = new CartItem(dish, preferences, quantity);
+		cart.add(item);
+		System.out.println("[DEBUG] Added to cart: " + item.toString());
 	}
 
-	public static void removeFromCart(Dish dish) {
-		cart.remove(dish);
-		System.out.println("[DEBUG] Removed from cart: " + dish.getName());
+	public static List<CartItem> getCart() {
+		return cart;
+	}
+
+	public static void removeFromCart(CartItem item) {
+		cart.remove(item);
+		System.out.println("[DEBUG] Removed from cart: " + item.toString());
 	}
 
 	public static void clearCart() {
@@ -46,17 +49,14 @@ public class SimpleClient extends AbstractClient {
 		System.out.println("[DEBUG] Cart cleared.");
 	}
 
-	public static List<Dish> getCart() {
-		return cart;
-	}
 
 	private SimpleClient(String host, int port) {
 		super(host, port);
 	}
-	public static void setSelectedDish(Dish dish) {
+	public static void setSelectedDish(dishDTO dish) {
 		selectedDish = dish;
 	}
-	public static Dish getSelectedDish() {
+	public static dishDTO getSelectedDish() {
 		return selectedDish;
 	}
 	public static void setSelectedRestaurant(String restaurant) {
@@ -70,7 +70,7 @@ public class SimpleClient extends AbstractClient {
 
 	@Override
 	protected void handleMessageFromServer(Object msg) {
-
+		System.out.println("the message was recieved");
 		if (msg instanceof RestaurantListResponse) {
 			RestaurantListResponse response = (RestaurantListResponse) msg;
 			List<Restaurant> Restaurants = response.getRestaurants();
@@ -84,9 +84,21 @@ public class SimpleClient extends AbstractClient {
 			EventBus.getDefault().post(new RestaurantListResponse(Restaurants));
 
 		}
-		else if (msg instanceof MenuResponse) {
-			System.out.println("Client received `MenuResponse` from server.");
-			EventBus.getDefault().post((MenuResponse) msg);  // Post to EventBus
+		else if (msg instanceof responseDTO) {
+			System.out.println("the message is responeDTO type");
+			responseDTO response = (responseDTO) msg;
+			String message = response.getMessage();
+
+			if(message.equals("MenuResponse"))
+			{
+				System.out.println("Client received `MenuResponse` from server.");
+				List<dishDTO> dishes = (List<dishDTO>)response.getPayload()[0];
+				EventBus.getDefault().post(dishes);  // Post to EventBus
+			} else if (message.equals("menu")) {
+				System.out.println("Client received `menu` from server.");
+				List<MenuItemDTO> dishes = (List<MenuItemDTO>)response.getPayload()[0];
+				EventBus.getDefault().post(dishes);  // Post to EventBus
+			}
 		}
 		else
 		{
@@ -95,13 +107,13 @@ public class SimpleClient extends AbstractClient {
 		}
 
 	}
-	private static List<MenuDish> menuDishes = new ArrayList<>();
+	private static List<MenuItemDTO> menuDishes = new ArrayList<>();
 
-	public static void setMenuDishes(List<MenuDish> dishes) {
+	public static void setMenuDishes(List<MenuItemDTO> dishes) {
 		menuDishes = dishes;
 	}
 
-	public static List<MenuDish> getMenuDishes() {
+	public static List<MenuItemDTO> getMenuDishes() {
 		return menuDishes;
 	}
 

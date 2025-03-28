@@ -51,9 +51,9 @@ public class customerHomeController {
         System.out.println("Navigating to orderFoodView with restaurant: " + selectedRestaurant);
 
         // Pass selected restaurant to order food controller
-        orderFoodController controller = (orderFoodController) SimpleClient.getClient().navigateTo("orderFoodView");
-        if (controller != null) {
-            controller.setSelectedRestaurant(selectedRestaurant);
-        }
+//        orderFoodController controller = (orderFoodController) SimpleClient.getClient().navigateTo("orderFoodView");
+//        if (controller != null) {
+//            controller.setSelectedRestaurant(selectedRestaurant);
+//        }
     }
 }
