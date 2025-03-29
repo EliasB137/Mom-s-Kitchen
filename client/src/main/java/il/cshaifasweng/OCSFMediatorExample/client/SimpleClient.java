@@ -10,6 +10,8 @@ import javafx.stage.Stage;
 import org.greenrobot.eventbus.EventBus;
 import il.cshaifasweng.OCSFMediatorExample.client.ocsf.AbstractClient;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -89,8 +91,13 @@ public class SimpleClient extends AbstractClient {
 				List<restaurantDTO> restaurantsDTO = (List<restaurantDTO>)response.getPayload()[0];
 				EventBus.getDefault().post(restaurantsDTO);
 			}
-		}
-		else
+		} else if (msg instanceof restaurantDTO) {
+			System.out.println("the message is restaurantDTO type");
+			restaurantDTO response = (restaurantDTO) msg;
+			EventBus.getDefault().post(response);
+
+
+		} else
 		{
 			System.out.println("ERROR: Unknown message type received: " + msg.getClass().getName());
 			System.out.println("Client received raw message: " + msg.toString());

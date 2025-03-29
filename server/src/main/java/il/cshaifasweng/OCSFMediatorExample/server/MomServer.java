@@ -15,10 +15,7 @@ import java.util.stream.Collectors;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 
-import org.hibernate.Hibernate;
-import org.hibernate.HibernateException;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
+import org.hibernate.*;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.service.ServiceRegistry;
@@ -58,13 +55,13 @@ public class MomServer extends AbstractServer {
                 System.out.println("No restaurants found! Adding test restaurant...");
 
                 Restaurant restaurant = new Restaurant("Golden Gate Bites", "Downtown", Arrays.asList(
-                        "Monday: 08:00-22:00",
-                        "Tuesday: 08:00-22:00",
-                        "Wednesday: 08:00-22:00",
-                        "Thursday: 08:00-22:00",
-                        "Friday: 08:00-22:00",
-                        "Saturday: 09:00-23:00",
-                        "Sunday: closed"
+                        "monday: 08:00-22:00",
+                        "tuesday: 08:00-22:00",
+                        "wednesday: 08:00-22:00",
+                        "thursday: 08:00-22:00",
+                        "friday: 08:00-22:00",
+                        "saturday: 09:00-23:00",
+                        "sunday: closed"
                 ));
                 session.save(restaurant);
                 session.flush();
@@ -196,25 +193,21 @@ public class MomServer extends AbstractServer {
                     session.close();
                 }
             }
-            System.out.println("check1");
             // Ensure data exists before sending
             if (restaurantList == null || restaurantList.isEmpty()) {
                 System.out.println("No restaurants found.");
                 return;
             }
             List<restaurantDTO> restaurantsDTO = DTOConverter.convertToRestaurantDTOList(restaurantList);
-            System.out.println("check2");
+
             if (restaurantsDTO == null) {
                 System.err.println("[ERROR] dishesDTO is null!");
             } else {
                 System.out.println("[DEBUG] dishesDTO: " + restaurantsDTO);
             }
-            System.out.println("check3");
             responseDTO response = new responseDTO("restaurants",new Object[]{restaurantsDTO});
 
-//            // Send response to client
-//            RestaurantListResponse response = new RestaurantListResponse(restaurantList);
-            System.out.println("check4");
+
             if (client != null && client.isAlive()) {
                 try {
                     client.sendToClient(response);
@@ -253,17 +246,47 @@ public class MomServer extends AbstractServer {
                 System.err.println("ERROR: Failed to fetch menu for restaurant!");
                 e.printStackTrace();
             }
-        }
+        } else if (msgString.startsWith("getRestaurantByName:")) {
+            String restaurantName = msgString.replace("getRestaurantByName:", "").trim();
+            System.out.println("Server received 'getRestaurantByName' request for: " + restaurantName);
+
+            Session session = sessionFactory.openSession();
+            Restaurant restaurant = null;
+
+            try {
+                String hql = "FROM Restaurant r WHERE r.name = :restaurantName";
+                Query<Restaurant> query = session.createQuery(hql, Restaurant.class);
+                query.setParameter("restaurantName", restaurantName);
+
+                restaurant = query.uniqueResult();  // Can be null if no match found
+
+                Hibernate.initialize(restaurant.getOpeningHours());
 
 
+            } catch (Exception e) {
+                e.printStackTrace();  // Log any errors
+            } finally {
+                session.close();  // Ensure session is closed
+            }
 
+            if (restaurant != null) {
+                System.out.println("[DEBUG] Got Restaurant from Database: " + restaurant);
+            } else {
+                System.out.println("[DEBUG] No restaurant found with name: " + restaurantName);
+            }
 
+            restaurantDTO RestaurantDTO = DTOConverter.convertToRestaurantDTO(restaurant);
 
+            System.out.println("[DEBUG] converted restaurant and now sending it " + restaurant);
 
+            if (client != null && client.isAlive()) {
+                try {
+                    client.sendToClient(RestaurantDTO);
+                }
+                catch (IOException e) {}
+            }
 
-
-
-        else if(msgString.startsWith("updatePrice")) {
+        } else if(msgString.startsWith("updatePrice")) {
             String[] parts = msgString.split("\\|");
             if (parts.length == 3) {
                 int id = Integer.parseInt(parts[1]);

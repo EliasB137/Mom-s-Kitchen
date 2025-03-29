@@ -58,12 +58,11 @@ public class restaurantDTO implements Serializable {
         if (openingHours == null) {
             return "Opening hours not available!";
         }
-
         return openingHours.stream()
-                .filter(hours -> hours.startsWith(day + ":"))
+                .filter(hours -> hours.startsWith(day.trim() + ":"))
                 .map(hours -> hours.substring(hours.indexOf(":") + 2))  // Extracts only the time
                 .findFirst()
-                .orElse("Closed");
+                .orElse("closed");
     }
 
 
