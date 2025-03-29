@@ -70,7 +70,7 @@ public class menuController {
     @Subscribe
     public void loadDishes(List<dishDTO> event) {
         if (event == null || event.isEmpty()) {
-            System.out.println("⚠️ No dishes available.");
+            System.out.println("No dishes available.");
             return;
         }
 
@@ -99,8 +99,10 @@ public class menuController {
                             return dish.getIngredients().toLowerCase().contains(searchQuery);
                         }
                         else if (category.equals("Restaurant")) {
-                        //complete this
+                            return dish.getRestaurantNames().stream()
+                                    .anyMatch(name -> name.toLowerCase().contains(searchQuery));
                         }
+
                         return false;
                     })
                     .collect(Collectors.toList());

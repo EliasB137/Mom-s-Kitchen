@@ -25,6 +25,7 @@ public class Dish {
     @Column(name = "preference")
     private List<String> availablePreferences = new ArrayList<>();
 
+
     @Column(name = "price", nullable = false)
     private String price;
 
@@ -34,17 +35,24 @@ public class Dish {
     @Column(name = "delivery_available")
     private boolean deliveryAvailable;
 
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "dish_restaurant_names", joinColumns = @JoinColumn(name = "dish_id"))
+    @Column(name = "restaurant_name")
+    private List<String> restaurantNames = new ArrayList<>();
+
     // Default constructor
     public Dish() {}
 
-    public Dish(String name, String ingredients, List<String> availablePreferences, String price, String imageUrl, boolean deliveryAvailable) {
+    public Dish(String name, String ingredients, List<String> availablePreferences, String price, String imageUrl, boolean deliveryAvailable, List<String> restaurantNames) {
         this.name = name;
         this.ingredients = ingredients;
         this.price = price;
         this.deliveryAvailable = deliveryAvailable;
         this.availablePreferences = availablePreferences;
         this.imageUrl = imageUrl;
+        this.restaurantNames = restaurantNames;
     }
+
 
 
     // Getters and setters
@@ -67,6 +75,14 @@ public class Dish {
 
     public boolean isDeliveryAvailable() { return deliveryAvailable; }
     public void setDeliveryAvailable(boolean deliveryAvailable) { this.deliveryAvailable = deliveryAvailable; }
+
+    public List<String> getRestaurantNames() {
+        return restaurantNames;
+    }
+
+    public void setRestaurantNames(List<String> restaurantNames) {
+        this.restaurantNames = restaurantNames;
+    }
 
     @Override
     public String toString() {

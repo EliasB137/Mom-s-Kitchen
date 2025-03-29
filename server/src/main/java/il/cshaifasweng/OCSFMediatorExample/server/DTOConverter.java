@@ -12,34 +12,35 @@ import java.util.stream.Collectors;
 
 public class DTOConverter implements Serializable {
     private static final long serialVersionUID = 1L;
+/// ////////////////////Dish converter ///////////////////////////
+public static dishDTO convertToDishDTO(Dish dish) {
+    if (dish == null) return null;
 
-    public static dishDTO convertToDishDTO(Dish dish) {
-        if (dish == null) return null;
-        return new dishDTO(
-                dish.getId(),
-                dish.getName(),
-                dish.getIngredients(),
-                new ArrayList<>(dish.getAvailablePreferences()), // Create a new list
-                dish.getPrice(),
-                dish.getImageUrl(),
-                dish.isDeliveryAvailable()
-        );
-    }
+    List<String> restaurantNames = dish.getRestaurantNames() != null
+            ? new ArrayList<>(dish.getRestaurantNames())
+            : new ArrayList<>();
+
+    return new dishDTO(
+            dish.getId(),
+            dish.getName(),
+            dish.getIngredients(),
+            new ArrayList<>(dish.getAvailablePreferences()),
+            dish.getPrice(),
+            dish.getImageUrl(),
+            dish.isDeliveryAvailable(),
+            restaurantNames
+    );
+}
+
 
     public static List<dishDTO> convertToDishDTOList(List<Dish> dishes) {
         return dishes.stream()
-                .map(dish -> new dishDTO(
-                        dish.getId(),
-                        dish.getName(),
-                        dish.getIngredients(),
-                        new ArrayList<>(dish.getAvailablePreferences()), // Create a new list
-                        dish.getPrice(),
-                        dish.getImageUrl(),
-                        dish.isDeliveryAvailable()
-                ))
+                .map(DTOConverter::convertToDishDTO)
                 .collect(Collectors.toList());
     }
 
+    /// //////////////////////////////////////////////////////////
+/// ///////////////////Restaurant converter///////////////////////
     public static restaurantDTO convertToRestaurantDTO(Restaurant restaurant) {
         if (restaurant == null) return null;
         return new restaurantDTO(
@@ -81,5 +82,7 @@ public class DTOConverter implements Serializable {
             return new ArrayList<>();
         }
     }
+    /// //////////////////////////////////////
+
 
 }

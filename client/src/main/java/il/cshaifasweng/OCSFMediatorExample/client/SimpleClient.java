@@ -1,7 +1,6 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
 import il.cshaifasweng.OCSFMediatorExample.entities.DTO.dishDTO;
-import il.cshaifasweng.OCSFMediatorExample.entities.DTO.MenuItemDTO;
 import il.cshaifasweng.OCSFMediatorExample.entities.DTO.*;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -74,16 +73,14 @@ public class SimpleClient extends AbstractClient {
 			responseDTO response = (responseDTO) msg;
 			String message = response.getMessage();
 
-			if(message.equals("MenuResponse"))
-			{
-				System.out.println("Client received `MenuResponse` from server.");
-				List<dishDTO> dishes = (List<dishDTO>)response.getPayload()[0];
-				EventBus.getDefault().post(dishes);  // Post to EventBus
-			} else if (message.equals("MenuForRestaurant")) {
-				System.out.println("Client received `menu` from server.");
-				List<MenuItemDTO> dishes = (List<MenuItemDTO>)response.getPayload()[0];
-				EventBus.getDefault().post(dishes);  // Post to EventBus
-			}else if (message.equals("restaurants"))
+			if (message.equals("MenuResponse") || message.equals("MenuForRestaurant")) {
+				System.out.println("Client received `" + message + "` from server.");
+				List<dishDTO> dishes = (List<dishDTO>) response.getPayload()[0];
+				EventBus.getDefault().post(dishes);
+			}
+
+
+			else if (message.equals("restaurants"))
 			{
 				System.out.println("Client received `restaurants` from server.");
 				List<restaurantDTO> restaurantsDTO = (List<restaurantDTO>)response.getPayload()[0];
@@ -96,15 +93,6 @@ public class SimpleClient extends AbstractClient {
 			System.out.println("Client received raw message: " + msg.toString());
 		}
 
-	}
-	private static List<MenuItemDTO> menuDishes = new ArrayList<>();
-
-	public static void setMenuDishes(List<MenuItemDTO> dishes) {
-		menuDishes = dishes;
-	}
-
-	public static List<MenuItemDTO> getMenuDishes() {
-		return menuDishes;
 	}
 
 	public Object navigateTo(String fxmlFileName) {
