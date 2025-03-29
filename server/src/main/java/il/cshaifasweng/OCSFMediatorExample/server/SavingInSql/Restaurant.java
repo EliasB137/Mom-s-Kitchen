@@ -1,7 +1,8 @@
-package il.cshaifasweng.OCSFMediatorExample.entities.DTO;
+package il.cshaifasweng.OCSFMediatorExample.server.SavingInSql;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.List;
 
 @Entity
 @Table(name = "restaurant")
@@ -19,12 +20,21 @@ public class Restaurant implements Serializable {
     @Column(name = "location", nullable = false, length = 255)
     private String location;
 
+    @ElementCollection
+    @CollectionTable(
+            name = "restaurant_opening_hours",
+            joinColumns = @JoinColumn(name = "restaurant_id")
+    )
+    @Column(name = "opening_hours")
+    private List<String> openingHours;
+
     // Default constructor
     public Restaurant() {}
 
-    public Restaurant(String name, String location) {
+    public Restaurant(String name, String location, List<String> openingHours) {
         this.name = name;
         this.location = location;
+        this.openingHours = openingHours;
     }
 
     public int getId() { return id; }
@@ -33,6 +43,8 @@ public class Restaurant implements Serializable {
     public void setName(String name) { this.name = name; }
     public String getLocation() { return location; }
     public void setLocation(String location) { this.location = location; }
+    public List<String> getOpeningHours() { return openingHours; }
+    public void setOpeningHours(List<String> openingHours) {this.openingHours = openingHours; }
 
     @Override
     public String toString() {

@@ -1,6 +1,5 @@
 package il.cshaifasweng.OCSFMediatorExample.server;
 
-import il.cshaifasweng.OCSFMediatorExample.client.RestaurantListResponse;
 import il.cshaifasweng.OCSFMediatorExample.entities.DTO.*;
 import il.cshaifasweng.OCSFMediatorExample.server.SavingInSql.*;
 import il.cshaifasweng.OCSFMediatorExample.server.converters.DishDTOConverter;
@@ -15,6 +14,8 @@ import java.util.Scanner;
 import java.util.stream.Collectors;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+
+import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -56,7 +57,15 @@ public class MomServer extends AbstractServer {
             if (restaurantList.isEmpty()) {
                 System.out.println("No restaurants found! Adding test restaurant...");
 
-                Restaurant restaurant = new Restaurant("Golden Gate Bites", "Downtown");
+                Restaurant restaurant = new Restaurant("Golden Gate Bites", "Downtown", Arrays.asList(
+                        "Monday: 08:00-22:00",
+                        "Tuesday: 08:00-22:00",
+                        "Wednesday: 08:00-22:00",
+                        "Thursday: 08:00-22:00",
+                        "Friday: 08:00-22:00",
+                        "Saturday: 09:00-23:00",
+                        "Sunday: closed"
+                ));
                 session.save(restaurant);
                 session.flush();
 
@@ -134,7 +143,7 @@ public class MomServer extends AbstractServer {
                         System.out.println("Dish: " + dish.getName());
                     }
                 }
-                List<dishDTO> dishesDTO = DishDTOConverter.convertToDTOList(dishes);
+                List<dishDTO> dishesDTO = DTOConverter.convertToDishDTOList(dishes);
 
                 if (dishesDTO == null) {
                     System.err.println("[ERROR] dishesDTO is null!");
@@ -170,6 +179,11 @@ public class MomServer extends AbstractServer {
                 query.from(Restaurant.class);
                 restaurantList = session.createQuery(query).getResultList();
 
+                // THIS IS NEEDED FOR THE ARRAY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                for (Restaurant restaurant : restaurantList) {
+                    Hibernate.initialize(restaurant.getOpeningHours());
+                }
+
                 session.getTransaction().commit();
             } catch (Exception e) {
                 if (session != null) {
@@ -182,15 +196,25 @@ public class MomServer extends AbstractServer {
                     session.close();
                 }
             }
-
+            System.out.println("check1");
             // Ensure data exists before sending
             if (restaurantList == null || restaurantList.isEmpty()) {
                 System.out.println("No restaurants found.");
                 return;
             }
+            List<restaurantDTO> restaurantsDTO = DTOConverter.convertToRestaurantDTOList(restaurantList);
+            System.out.println("check2");
+            if (restaurantsDTO == null) {
+                System.err.println("[ERROR] dishesDTO is null!");
+            } else {
+                System.out.println("[DEBUG] dishesDTO: " + restaurantsDTO);
+            }
+            System.out.println("check3");
+            responseDTO response = new responseDTO("restaurants",new Object[]{restaurantsDTO});
 
-            // Send response to client
-            RestaurantListResponse response = new RestaurantListResponse(restaurantList);
+//            // Send response to client
+//            RestaurantListResponse response = new RestaurantListResponse(restaurantList);
+            System.out.println("check4");
             if (client != null && client.isAlive()) {
                 try {
                     client.sendToClient(response);
