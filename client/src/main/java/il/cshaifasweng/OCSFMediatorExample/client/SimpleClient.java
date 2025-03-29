@@ -9,7 +9,6 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import org.greenrobot.eventbus.EventBus;
 import il.cshaifasweng.OCSFMediatorExample.client.ocsf.AbstractClient;
-import il.cshaifasweng.OCSFMediatorExample.entities.DTO.Restaurant;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -71,20 +70,7 @@ public class SimpleClient extends AbstractClient {
 	@Override
 	protected void handleMessageFromServer(Object msg) {
 		System.out.println("the message was recieved");
-		if (msg instanceof RestaurantListResponse) {
-			RestaurantListResponse response = (RestaurantListResponse) msg;
-			List<Restaurant> Restaurants = response.getRestaurants();
-
-			System.out.println("Received " + Restaurants.size() + " restaurants from server.");
-			for (Restaurant restaurant : Restaurants) {
-				System.out.println("Restaurant: " + restaurant.getName() + " - Location: " + restaurant.getLocation());
-			}
-
-			// Post event to update UI
-			EventBus.getDefault().post(new RestaurantListResponse(Restaurants));
-
-		}
-		else if (msg instanceof responseDTO) {
+		if (msg instanceof responseDTO) {
 			System.out.println("the message is responeDTO type");
 			responseDTO response = (responseDTO) msg;
 			String message = response.getMessage();
@@ -98,6 +84,11 @@ public class SimpleClient extends AbstractClient {
 				System.out.println("Client received `menu` from server.");
 				List<MenuItemDTO> dishes = (List<MenuItemDTO>)response.getPayload()[0];
 				EventBus.getDefault().post(dishes);  // Post to EventBus
+			}else if (message.equals("restaurants"))
+			{
+				System.out.println("Client received `restaurants` from server.");
+				List<restaurantDTO> restaurantsDTO = (List<restaurantDTO>)response.getPayload()[0];
+				EventBus.getDefault().post(restaurantsDTO);
 			}
 		}
 		else

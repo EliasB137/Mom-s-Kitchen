@@ -1,6 +1,6 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
-import il.cshaifasweng.OCSFMediatorExample.entities.DTO.Restaurant;
+import il.cshaifasweng.OCSFMediatorExample.entities.DTO.restaurantDTO;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -12,6 +12,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
 import java.io.IOException;
+import java.util.List;
 
 public class startPageController {
 
@@ -64,16 +65,16 @@ public class startPageController {
     }
 
     @Subscribe
-    public void loadRestaurants(RestaurantListResponse event) {
+    public void loadRestaurants(List<restaurantDTO> event) {
         System.out.println("EventBus triggered loadRestaurants()!");
 
-        if (event == null || event.getRestaurants() == null || event.getRestaurants().isEmpty()) {
+        if (event == null || event == null || event.isEmpty()) {
             System.out.println("No restaurants available.");
             return;
         }
-        System.out.println("Received " + event.getRestaurants().size() + " restaurants from EventBus.");
+        System.out.println("Received " + event.size() + " restaurants from EventBus.");
         restaurantList.clear();
-        for (Restaurant restaurant : event.getRestaurants()) {
+        for (restaurantDTO restaurant : event) {
             System.out.println("Dropdown Adding: " + restaurant.getName());
             restaurantList.add(restaurant.getName());
         }

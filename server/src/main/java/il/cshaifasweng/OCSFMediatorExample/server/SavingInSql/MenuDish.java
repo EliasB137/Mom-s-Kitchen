@@ -1,7 +1,5 @@
 package il.cshaifasweng.OCSFMediatorExample.server.SavingInSql;
 
-import il.cshaifasweng.OCSFMediatorExample.entities.DTO.Restaurant;
-
 import javax.persistence.*;
 import java.util.Objects;
 
