@@ -11,9 +11,13 @@
     <TableView fx:id="cartTable">
         <columns>
             <TableColumn fx:id="nameColumn" text="Dish Name" />
-            <TableColumn fx:id="priceColumn" text="Price" />
+            <TableColumn fx:id="preferencesColumn" text="Preferences" />
+            <TableColumn fx:id="quantityColumn" text="Quantity" />
+            <TableColumn fx:id="totalPriceColumn" text="Total Price" />
             <TableColumn fx:id="removeColumn" text="Remove" />
         </columns>
+
+
     </TableView>
 
     <Label fx:id="totalPriceLabel" text="Total: $" style="-fx-font-size: 16px; -fx-font-weight: bold;" />

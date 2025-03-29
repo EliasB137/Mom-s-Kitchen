@@ -55,8 +55,11 @@ public class dishViewController {
             System.err.println("[ERROR] No dish selected!");
         }
 
-        addToCartButton.setOnAction(event -> handleAddToCart());
-//        backButton.setOnAction(event -> handleOrderFood());
+        addToCartButton.setOnAction(event -> {
+            System.out.println("[DEBUG] Add to Cart button pressed");
+            handleAddToCart();
+        });
+        backButton.setOnAction(event -> handleOrderFood());
     }
 
     private void handleAddToCart() {
@@ -73,19 +76,20 @@ public class dishViewController {
         System.out.println("Quantity: " + quantity);
 
         // extend SimpleClient.addToCart to handle preferences and quantity
-        SimpleClient.addToCart(selectedDish, selectedPreferences, quantity);
+        CartStore.addItem(new CartItem(selectedDish, selectedPreferences, quantity));
+
     }
 
-//    private void handleOrderFood() {
-//        if (selectedRestaurant == null) {
-//            System.out.println("ERROR: No restaurant selected!");
-//            return;
-//        }
-//
-//        System.out.println("Navigating to orderFoodView with restaurant: " + selectedRestaurant);
-//        orderFoodController controller = (orderFoodController) SimpleClient.getClient().navigateTo("orderFoodView");
-//        if (controller != null) {
-//            controller.setSelectedRestaurant(selectedRestaurant);
-//        }
-//    }
+    private void handleOrderFood() {
+        if (selectedRestaurant == null) {
+            System.out.println("ERROR: No restaurant selected!");
+            return;
+        }
+
+        System.out.println("Navigating to orderFoodView with restaurant: " + selectedRestaurant);
+        orderFoodController controller = (orderFoodController) SimpleClient.getClient().navigateTo("orderFoodView");
+        if (controller != null) {
+            controller.setSelectedRestaurant(selectedRestaurant);
+        }
+    }
 }

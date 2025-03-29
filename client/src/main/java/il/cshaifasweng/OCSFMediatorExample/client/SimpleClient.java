@@ -29,25 +29,25 @@ public class SimpleClient extends AbstractClient {
 	//keep track of the selected dish
 	private static dishDTO selectedDish;
 
-	public static void addToCart(dishDTO dish, List<String> preferences, int quantity) {
-		CartItem item = new CartItem(dish, preferences, quantity);
-		cart.add(item);
-		System.out.println("[DEBUG] Added to cart: " + item.toString());
-	}
-
-	public static List<CartItem> getCart() {
-		return cart;
-	}
-
-	public static void removeFromCart(CartItem item) {
-		cart.remove(item);
-		System.out.println("[DEBUG] Removed from cart: " + item.toString());
-	}
-
-	public static void clearCart() {
-		cart.clear();
-		System.out.println("[DEBUG] Cart cleared.");
-	}
+//	public static void addToCart(dishDTO dish, List<String> preferences, int quantity) {
+//		CartItem item = new CartItem(dish, preferences, quantity);
+//		cart.add(item);
+//		System.out.println("[DEBUG] Added to cart: " + item.toString());
+//	}
+//
+//	public static List<CartItem> getCart() {
+//		return cart;
+//	}
+//
+//	public static void removeFromCart(CartItem item) {
+//		cart.remove(item);
+//		System.out.println("[DEBUG] Removed from cart: " + item.toString());
+//	}
+//
+//	public static void clearCart() {
+//		cart.clear();
+//		System.out.println("[DEBUG] Cart cleared.");
+//	}
 
 
 	private SimpleClient(String host, int port) {
@@ -60,8 +60,7 @@ public class SimpleClient extends AbstractClient {
 		return selectedDish;
 	}
 	public static void setSelectedRestaurant(String restaurant) {
-		selectedRestaurant = restaurant;
-		clearCart();
+		selectedRestaurant = restaurant;;
 	}
 
 	public static String getSelectedRestaurant() {
@@ -94,7 +93,7 @@ public class SimpleClient extends AbstractClient {
 				System.out.println("Client received `MenuResponse` from server.");
 				List<dishDTO> dishes = (List<dishDTO>)response.getPayload()[0];
 				EventBus.getDefault().post(dishes);  // Post to EventBus
-			} else if (message.equals("menu")) {
+			} else if (message.equals("MenuForRestaurant")) {
 				System.out.println("Client received `menu` from server.");
 				List<MenuItemDTO> dishes = (List<MenuItemDTO>)response.getPayload()[0];
 				EventBus.getDefault().post(dishes);  // Post to EventBus

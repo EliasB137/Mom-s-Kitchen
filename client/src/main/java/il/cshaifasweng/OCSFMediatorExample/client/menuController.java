@@ -49,7 +49,7 @@ public class menuController {
         );
 
         if (searchCategoryChoiceBox.getItems().isEmpty()) {
-            searchCategoryChoiceBox.getItems().addAll("All", "Ingredient");
+            searchCategoryChoiceBox.getItems().addAll("All", "Ingredient","Restaurant");
             searchCategoryChoiceBox.setValue("All");
         }
 
@@ -74,7 +74,7 @@ public class menuController {
             return;
         }
 
-        System.out.println("✅ Received " + event.size() + " dishes from server.");
+        System.out.println("Received " + event.size() + " dishes from server.");
         dishList.setAll(event);
         menuTableView.refresh();
     }
@@ -97,6 +97,9 @@ public class menuController {
                                     dish.getIngredients().toLowerCase().contains(searchQuery);
                         } else if (category.equals("Ingredient")) {
                             return dish.getIngredients().toLowerCase().contains(searchQuery);
+                        }
+                        else if (category.equals("Restaurant")) {
+                        //complete this
                         }
                         return false;
                     })

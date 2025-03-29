@@ -1,4 +1,4 @@
-package il.cshaifasweng.OCSFMediatorExample.server;
+package il.cshaifasweng.OCSFMediatorExample.server.converters;
 
 import il.cshaifasweng.OCSFMediatorExample.server.SavingInSql.Dish;
 import il.cshaifasweng.OCSFMediatorExample.entities.DTO.dishDTO;

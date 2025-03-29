@@ -3,11 +3,12 @@ package il.cshaifasweng.OCSFMediatorExample.server;
 import il.cshaifasweng.OCSFMediatorExample.client.RestaurantListResponse;
 import il.cshaifasweng.OCSFMediatorExample.entities.DTO.*;
 import il.cshaifasweng.OCSFMediatorExample.server.SavingInSql.*;
+import il.cshaifasweng.OCSFMediatorExample.server.converters.DishDTOConverter;
+import il.cshaifasweng.OCSFMediatorExample.server.converters.MenuItemDTOConverter;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.AbstractServer;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.ConnectionToClient;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
@@ -143,11 +144,6 @@ public class MomServer extends AbstractServer {
 
                 responseDTO response = new responseDTO("MenuResponse",new Object[]{dishesDTO});
                 client.sendToClient(response);
-//                List<dishDTO> testList = new ArrayList<>();
-//                testList.add(new dishDTO(1, "Test", "None", List.of("Extra cheese"), "5.00", "", true));
-//
-//                responseDTO testResponse = new responseDTO("MenuResponse", new Object[]{testList});
-//                client.sendToClient(testResponse);
 
 
             } catch (Exception e) {
@@ -221,20 +217,12 @@ public class MomServer extends AbstractServer {
                 session.getTransaction().commit();
                 session.close();
 
-                List<MenuItemDTO> menuItemDTOs = menuDishes.stream()
-                        .map(md -> new MenuItemDTO(new dishDTO(md.getDish().getId(),
-                                md.getDish().getName(),
-                                md.getDish().getIngredients(),
-                                md.getDish().getAvailablePreferences(),
-                                md.getDish().getPrice(),
-                                md.getDish().getImageUrl(),
-                                md.getDish().isDeliveryAvailable())
-                                , md.getRestaurant().getName()))
-                        .collect(Collectors.toList());
+                List<MenuItemDTO> menuItemDTOs = MenuItemDTOConverter.convertList(menuDishes);
+
 
                 System.out.println("[DEBUG] Sending menuItemDTOs with size: " + menuItemDTOs.size());
 
-                responseDTO response = new responseDTO("menu", new Object[]{menuItemDTOs});
+                responseDTO response = new responseDTO("MenuForRestaurant", new Object[]{menuItemDTOs});
                 client.sendToClient(response);
 
             } catch (Exception e) {
