@@ -2,7 +2,6 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
 import il.cshaifasweng.OCSFMediatorExample.entities.DTO.dishDTO;
-import il.cshaifasweng.OCSFMediatorExample.entities.DTO.MenuItemDTO;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -53,6 +52,11 @@ public class orderFoodController {
                 ((cartController) controller).refreshCart();
             }
         });
+        if (searchCategoryChoiceBox.getItems().isEmpty()) {
+            searchCategoryChoiceBox.getItems().addAll("All", "Ingredient");
+            searchCategoryChoiceBox.setValue("All");
+        }
+
         searchButton.setOnAction(event -> searchDishes());
 
         menuTableView.setOnMouseClicked(event -> {
@@ -88,19 +92,29 @@ public class orderFoodController {
     }
 
     @Subscribe
-    public void loadMenu(List<MenuItemDTO> menuItems) {
-        System.out.println("[DEBUG] Received MenuItemDTO list from EventBus: " + menuItems.size());
+    public void loadMenu(List<dishDTO> menuItems) {
+        System.out.println("[DEBUG] Received dishDTO list from EventBus: " + menuItems.size());
 
         if (menuItems == null || menuItems.isEmpty()) {
             System.out.println("[ERROR] No menu items received!");
             return;
         }
 
-        SimpleClient.setMenuDishes(menuItems); // Store in static list if needed
+        String selectedRestaurant = SimpleClient.getSelectedRestaurant();
+        List<dishDTO> filteredDishes = menuItems.stream()
+                .filter(dish ->
+                        dish.isDeliveryAvailable() &&
+                                dish.getRestaurantNames().stream()
+                                        .anyMatch(name -> name.equalsIgnoreCase("all") || name.equalsIgnoreCase(selectedRestaurant))
+                )
+                .collect(Collectors.toList());
 
-        dishList.setAll(menuItems.stream().map(MenuItemDTO::getDish).collect(Collectors.toList()));
+        dishList.setAll(filteredDishes);
+        menuTableView.setItems(dishList);
         menuTableView.refresh();
     }
+
+
 
 
 

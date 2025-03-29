@@ -2,8 +2,6 @@ package il.cshaifasweng.OCSFMediatorExample.server;
 
 import il.cshaifasweng.OCSFMediatorExample.entities.DTO.*;
 import il.cshaifasweng.OCSFMediatorExample.server.SavingInSql.*;
-import il.cshaifasweng.OCSFMediatorExample.server.converters.DishDTOConverter;
-import il.cshaifasweng.OCSFMediatorExample.server.converters.MenuItemDTOConverter;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.AbstractServer;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.ConnectionToClient;
 
@@ -75,22 +73,25 @@ public class MomServer extends AbstractServer {
                     Dish dish = new Dish("Spaghetti Carbonara",
                             "Spaghetti, Eggs, Pecorino Romano cheese, pancetta, and black pepper",
                             Arrays.asList("No Pepper", "Extra Cheese", "No tomato"), "72.00",
-                            "https://cdn.loveandlemons.com/wp-content/uploads/2024/12/caesar-salad.jpg", true);
+                            "https://cdn.loveandlemons.com/wp-content/uploads/2024/12/caesar-salad.jpg", true, Arrays.asList("Golden Gate Bites"));
                     session.save(dish);
                     session.flush();
 
                     dish = new Dish("Caesar Salad", "Romaine lettuce, croutons, and Caesar dressing",
                             Arrays.asList("No Pepper", "Extra Cheese", "No tomato"), "48.00",
-                            "https://cdn.loveandlemons.com/wp-content/uploads/2024/12/caesar-salad.jpg", false);
+                            "https://cdn.loveandlemons.com/wp-content/uploads/2024/12/caesar-salad.jpg", true, Arrays.asList("All"));
 
+
+                    session.save(dish);
+                    session.flush();
+                    dish = new Dish("test1", "Romaine lettuce, croutons, and Caesar dressing",
+                            Arrays.asList("No Pepper", "Extra Cheese", "No tomato"), "48.00",
+                            "https://cdn.loveandlemons.com/wp-content/uploads/2024/12/caesar-salad.jpg", false, Arrays.asList("All"));
                     session.save(dish);
                     session.flush();
 
                     System.out.println("Test dish added: " + dish.getName());
 
-                    // Link dish to the restaurant in menu_dish
-                    MenuDish menuDish = new MenuDish(restaurant, dish);
-                    session.save(menuDish);
                     session.flush();
 
                     System.out.println("Linked " + dish.getName() + " to " + restaurant.getName());
@@ -128,6 +129,10 @@ public class MomServer extends AbstractServer {
                 session.beginTransaction();
 
                 List<Dish> dishes = session.createQuery("FROM Dish", Dish.class).getResultList();
+                for (Dish dish : dishes) {
+                    Hibernate.initialize(dish.getAvailablePreferences());
+                    Hibernate.initialize(dish.getRestaurantNames()); // <- This solves the LazyInitializationException
+                }
 
                 session.getTransaction().commit();
                 session.close();
@@ -225,22 +230,20 @@ public class MomServer extends AbstractServer {
                 Session session = sessionFactory.openSession();
                 session.beginTransaction();
 
-                List<MenuDish> menuDishes = session.createQuery(
-                                "SELECT md FROM MenuDish md JOIN FETCH md.restaurant WHERE md.restaurant.name = :restaurantName",
-                                MenuDish.class)
-                        .setParameter("restaurantName", restaurantName)
-                        .getResultList();
+                List<Dish> filteredDishes = session.createQuery("FROM Dish", Dish.class)
+                        .getResultList()
+                        .stream()
+                        .filter(d -> d.getRestaurantNames().contains(restaurantName) || d.getRestaurantNames().contains("All"))
+                        .collect(Collectors.toList());
+
+                List<dishDTO> dishDTOs = DTOConverter.convertToDishDTOList(filteredDishes);
+                responseDTO response = new responseDTO("MenuForRestaurant", new Object[]{dishDTOs});
+                client.sendToClient(response);
+
 
                 session.getTransaction().commit();
                 session.close();
 
-                List<MenuItemDTO> menuItemDTOs = MenuItemDTOConverter.convertList(menuDishes);
-
-
-                System.out.println("[DEBUG] Sending menuItemDTOs with size: " + menuItemDTOs.size());
-
-                responseDTO response = new responseDTO("MenuForRestaurant", new Object[]{menuItemDTOs});
-                client.sendToClient(response);
 
             } catch (Exception e) {
                 System.err.println("ERROR: Failed to fetch menu for restaurant!");
@@ -346,7 +349,6 @@ public class MomServer extends AbstractServer {
             configuration.addAnnotatedClass(Dish.class);
             configuration.addAnnotatedClass(Restaurant.class);
             configuration.addAnnotatedClass(FeedBack.class);
-            configuration.addAnnotatedClass(MenuDish.class);
             configuration.addAnnotatedClass(Order.class);
             configuration.addAnnotatedClass(OrderItem.class);
             configuration.addAnnotatedClass(Reports.class);

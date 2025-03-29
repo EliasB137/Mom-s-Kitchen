@@ -17,7 +17,6 @@
         <columns>
             <TableColumn fx:id="nameColumn" text="Name"/>
             <TableColumn fx:id="ingredientsColumn" text="Ingredients"/>
-            <TableColumn fx:id="preferenceColumn" text="Preferences"/>
             <TableColumn fx:id="priceColumn" text="Price"/>
             <TableColumn fx:id="deliveryColumn" text="Delivery"/>
         </columns>
