@@ -9,8 +9,6 @@ import javafx.stage.Stage;
 import org.greenrobot.eventbus.EventBus;
 import il.cshaifasweng.OCSFMediatorExample.client.ocsf.AbstractClient;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -69,37 +67,43 @@ public class SimpleClient extends AbstractClient {
 
 	@Override
 	protected void handleMessageFromServer(Object msg) {
-		System.out.println("the message was recieved");
+		System.out.println("Message received from server.");
+
 		if (msg instanceof responseDTO) {
-			System.out.println("the message is responeDTO type");
 			responseDTO response = (responseDTO) msg;
 			String message = response.getMessage();
 
-			if (message.equals("MenuResponse") || message.equals("MenuForRestaurant")) {
-				System.out.println("Client received `" + message + "` from server.");
-				List<dishDTO> dishes = (List<dishDTO>) response.getPayload()[0];
-				EventBus.getDefault().post(dishes);
-			}
+			switch (message) {
+				case "MenuResponse":
+				case "MenuForRestaurant":
+					List<dishDTO> dishes = (List<dishDTO>) response.getPayload()[0];
+					EventBus.getDefault().post(dishes);
+					break;
 
+				case "restaurants":
+					List<restaurantDTO> restaurants = (List<restaurantDTO>) response.getPayload()[0];
+					EventBus.getDefault().post(restaurants);
+					break;
 
-			else if (message.equals("restaurants"))
-			{
-				System.out.println("Client received `restaurants` from server.");
-				List<restaurantDTO> restaurantsDTO = (List<restaurantDTO>)response.getPayload()[0];
-				EventBus.getDefault().post(restaurantsDTO);
+				case "CustomerOrdersResponse":
+					List<OrderSummaryDTO> orderSummaries = (List<OrderSummaryDTO>) response.getPayload()[0];
+					EventBus.getDefault().post(orderSummaries);
+					break;
+
+				case "OrderCancelled":
+//					String cancelMsg = (String) response.getPayload()[0];
+//					EventBus.getDefault().post(new WarningEvent(cancelMsg));
+					break;
+
+				default:
+					System.out.println("[WARN] Unknown responseDTO message: " + message);
 			}
 		} else if (msg instanceof restaurantDTO) {
-			System.out.println("the message is restaurantDTO type");
-			restaurantDTO response = (restaurantDTO) msg;
-			EventBus.getDefault().post(response);
-
-
-		} else
-		{
-			System.out.println("ERROR: Unknown message type received: " + msg.getClass().getName());
-			System.out.println("Client received raw message: " + msg.toString());
+			EventBus.getDefault().post((restaurantDTO) msg);
+		} else {
+			System.err.println("Unknown message type: " + msg.getClass().getName());
+			System.err.println("Raw message: " + msg.toString());
 		}
-
 	}
 
 	public Object navigateTo(String fxmlFileName) {

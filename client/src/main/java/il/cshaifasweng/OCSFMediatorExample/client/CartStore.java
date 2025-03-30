@@ -1,5 +1,7 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
+import il.cshaifasweng.OCSFMediatorExample.entities.DTO.CartItem;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

@@ -11,6 +11,7 @@
     <Button fx:id="reserveTableButton" text="Reserve a Table" prefWidth="200"/>
     <Button fx:id="feedbackButton" text="Feedback" prefWidth="200"/>
     <Button fx:id="viewCartButton" text="Cart" prefWidth="200"/>
+    <Button fx:id="viewOrdersButton" text="View Orders" />
     <Button fx:id="backButton" text="Back" prefWidth="200"/>
 
 </VBox>

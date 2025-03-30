@@ -1,6 +1,5 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
-import il.cshaifasweng.OCSFMediatorExample.entities.DTO.MenuItemDTO;
 import il.cshaifasweng.OCSFMediatorExample.entities.DTO.restaurantDTO;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;

@@ -1,5 +1,6 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
+import il.cshaifasweng.OCSFMediatorExample.entities.DTO.CartItem;
 import il.cshaifasweng.OCSFMediatorExample.entities.DTO.dishDTO;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;

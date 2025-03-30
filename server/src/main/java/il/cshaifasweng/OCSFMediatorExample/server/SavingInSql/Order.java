@@ -1,6 +1,10 @@
 package il.cshaifasweng.OCSFMediatorExample.server.SavingInSql;
 
+import net.bytebuddy.asm.Advice;
+
 import javax.persistence.*;
+import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.HashSet;
 import java.io.Serializable;
 import java.util.Set;
@@ -14,105 +18,133 @@ public class Order implements Serializable {
     @Column(name = "order_id")
     private int id;
 
-    @Column(name = "price")
-    private int price;
+    @Column(name = "total_price")
+    private double totalPrice;
 
-    @Column(name = "location")
-    private String location;
+    @Column(name = "address")
+    private String address;
 
     @Column(name = "customer_name")
     private String customerName;
 
-    @Column(name = "email")
-    private String email;
+    @Column(name = "customer_id")
+    private String customerId;
 
     @Column(name = "credit_card")
     private String creditCard;
 
+    @Column(name = "preferred_delivery_time")
+    private LocalDateTime preferredDeliveryTime;
+
     @Column(name = "order_date")
     private java.util.Date orderDate;
 
-    @Column(name = "status")
-    private String status;
-
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "restaurant_id", nullable = false)
-    private Restaurant restaurant;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<OrderItem> orderItems = new HashSet<>();
 
-    // Constructors
     public Order() {}
 
-    public Order(int price, String location, String customerName, String email,
-                 String creditCard, java.util.Date orderDate, String status, Restaurant restaurant) {
-        this.price = price;
-        this.location = location;
+    public Order(double totalPrice, String address, String customerName, String customerId,
+                 String creditCard, LocalDateTime preferredDeliveryTime, java.util.Date orderDate) {
+        this.totalPrice = totalPrice;
+        this.address = address;
         this.customerName = customerName;
-        this.email = email;
+        this.customerId = customerId;
         this.creditCard = creditCard;
+        this.preferredDeliveryTime = preferredDeliveryTime;
         this.orderDate = orderDate;
-        this.status = status;
-        this.restaurant = restaurant;
     }
 
-    // Getters and setters
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
-
-    public int getPrice() { return price; }
-    public void setPrice(int price) { this.price = price; }
-
-    public String getLocation() { return location; }
-    public void setLocation(String location) { this.location = location; }
-
-    public String getCustomerName() { return customerName; }
-    public void setCustomerName(String customerName) { this.customerName = customerName; }
-
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-
-    public String getCreditCard() { return creditCard; }
-    public void setCreditCard(String creditCard) { this.creditCard = creditCard; }
-
-    public java.util.Date getOrderDate() { return orderDate; }
-    public void setOrderDate(java.util.Date orderDate) { this.orderDate = orderDate; }
-
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
-
-    public Restaurant getRestaurant() { return restaurant; }
-    public void setRestaurant(Restaurant restaurant) { this.restaurant = restaurant; }
-
-    public Set<OrderItem> getOrderItems() { return orderItems; }
-    public void setOrderItems(Set<OrderItem> orderItems) { this.orderItems = orderItems; }
-
-    // Helper method to add dishes to the order
-    public void addDish(Dish dish, int quantity, String specialInstructions) {
-        OrderItem orderItem = new OrderItem(this, dish, quantity, specialInstructions);
-        orderItems.add(orderItem);
-        //dish.getOrderItems().add(orderItem);
+    public int getId() {
+        return id;
     }
 
-    // Convenience method to get all dishes in this order
+    public double getTotalPrice() {
+        return totalPrice;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public String getCustomerName() {
+        return customerName;
+    }
+
+    public String getCustomerId() {
+        return customerId;
+    }
+
+    public String getCreditCard() {
+        return creditCard;
+    }
+
+    public LocalDateTime getPreferredDeliveryTime() {
+        return preferredDeliveryTime;
+    }
+
+    public Date getOrderDate() {
+        return orderDate;
+    }
+
+    public Set<OrderItem> getOrderItems() {
+        return orderItems;
+    }
+
+    public void addOrderItem(OrderItem item) {
+        item.setOrder(this);
+        orderItems.add(item);
+    }
+
     public Set<Dish> getDishes() {
-        return orderItems.stream()
-                .map(OrderItem::getDish)
-                .collect(Collectors.toSet());
+        return orderItems.stream().map(OrderItem::getDish).collect(Collectors.toSet());
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setTotalPrice(double totalPrice) {
+        this.totalPrice = totalPrice;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
+    }
+
+    public void setCustomerId(String customerId) {
+        this.customerId = customerId;
+    }
+
+    public void setCreditCard(String creditCard) {
+        this.creditCard = creditCard;
+    }
+
+    public void setPreferredDeliveryTime(LocalDateTime preferredDeliveryTime) {
+        this.preferredDeliveryTime = preferredDeliveryTime;
+    }
+
+    public void setOrderDate(Date orderDate) {
+        this.orderDate = orderDate;
+    }
+
+    public void setOrderItems(Set<OrderItem> orderItems) {
+        this.orderItems = orderItems;
     }
 
     @Override
     public String toString() {
         return "Order{" +
                 "id=" + id +
-                ", price=" + price +
-                ", location='" + location + '\'' +
-                ", customerName='" + customerName + '\'' +
-                ", email='" + email + '\'' +
-                ", orderDate=" + orderDate +
-                ", status='" + status + '\'' +
-                ", restaurant=" + (restaurant != null ? restaurant.getName() : "null") +
+                ", totalPrice=" + totalPrice +
+                ", customer='" + customerName + '\'' +
+                ", address='" + address + '\'' +
+                ", deliveryTime='" + preferredDeliveryTime + '\'' +
                 '}';
     }
 }
