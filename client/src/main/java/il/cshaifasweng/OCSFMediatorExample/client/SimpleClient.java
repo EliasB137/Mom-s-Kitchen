@@ -92,12 +92,6 @@ public class SimpleClient extends AbstractClient {
 					EventBus.getDefault().post(orderSummaries);
 					break;
 
-                case "restaurants":
-                    System.out.println("Client received `restaurants` from server.");
-                    List<restaurantDTO> restaurantsDTO = (List<restaurantDTO>)response.getPayload()[0];
-                    EventBus.getDefault().post(restaurantsDTO);
-                    break;
-
                 case "availableHours":
                     System.out.println("Client received `" + message + "` from server.");
                     List<String> Hours = (List<String>) response.getPayload()[0];

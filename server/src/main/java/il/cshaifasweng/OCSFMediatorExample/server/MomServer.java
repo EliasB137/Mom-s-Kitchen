@@ -265,7 +265,7 @@ public class MomServer extends AbstractServer {
                 System.out.println("[DEBUG] Got  " + tables.size() + " tables");
 
 
-        List<String> hours = getAvailableHours(reservations,tables,restaurantName,numberOfGuest,date);
+                List<String> hours = getAvailableHours(reservations,tables,restaurantName,numberOfGuest,date);
 
                 System.out.println("[DEBUG] Got " + hours.size() + " hours");
 
@@ -310,16 +310,16 @@ public class MomServer extends AbstractServer {
                         System.out.println("[DEBUG] dishesDTO: " + dishesDTO);
                     }
 
-                    responseDTO response = new responseDTO("MenuResponse",new Object[]{dishesDTO});
+                    responseDTO response = new responseDTO("MenuResponse", new Object[]{dishesDTO});
                     client.sendToClient(response);
 
 
-            } catch (Exception e) {
-                System.err.println("ERROR: Failed to fetch dishes!");
-                e.printStackTrace();
-            }
-        } else if (msgString.equals("getRestaurants")) {
-            System.out.println("Server received 'getRestaurants' request!");
+                } catch (Exception e) {
+                    System.err.println("ERROR: Failed to fetch dishes!");
+                    e.printStackTrace();
+                }
+            } else if (msgString.equals("getRestaurants")) {
+                System.out.println("Server received 'getRestaurants' request!");
 
                 List<Restaurant> restaurantList = null;
 
@@ -358,23 +358,23 @@ public class MomServer extends AbstractServer {
                 }
                 List<restaurantDTO> restaurantsDTO = DTOConverter.convertToRestaurantDTOList(restaurantList);
 
-            if (restaurantsDTO == null) {
-                System.err.println("[ERROR] dishesDTO is null!");
-            } else {
-                System.out.println("[DEBUG] dishesDTO: " + restaurantsDTO);
-            }
-            responseDTO response = new responseDTO("restaurants",new Object[]{restaurantsDTO});
-
-
-            if (client != null && client.isAlive()) {
-                try {
-                    client.sendToClient(response);
-                } catch (IOException e) {
+                if (restaurantsDTO == null) {
+                    System.err.println("[ERROR] dishesDTO is null!");
+                } else {
+                    System.out.println("[DEBUG] dishesDTO: " + restaurantsDTO);
                 }
-            }
-        } else if (msgString.startsWith("getMenuForRestaurant:")) {
-            String restaurantName = msgString.replace("getMenuForRestaurant:", "").trim();
-            System.out.println("Server received 'getMenuForRestaurant' request for: " + restaurantName);
+                responseDTO response = new responseDTO("restaurants", new Object[]{restaurantsDTO});
+
+
+                if (client != null && client.isAlive()) {
+                    try {
+                        client.sendToClient(response);
+                    } catch (IOException e) {
+                    }
+                }
+            } else if (msgString.startsWith("getMenuForRestaurant:")) {
+                String restaurantName = msgString.replace("getMenuForRestaurant:", "").trim();
+                System.out.println("Server received 'getMenuForRestaurant' request for: " + restaurantName);
 
                 try {
                     Session session = sessionFactory.openSession();
@@ -432,146 +432,137 @@ public class MomServer extends AbstractServer {
 
                 System.out.println("[DEBUG] converted restaurant and now sending it " + restaurant);
 
-            if (client != null && client.isAlive()) {
-                try {
-                    client.sendToClient(RestaurantDTO);
-                } catch (IOException e) {
-                }
-            }
-
-
-        } else if (msg instanceof OrderSubmissionDTO) {
-            OrderSubmissionDTO orderDTO = (OrderSubmissionDTO) msg;
-            try {
-                Session session = getSessionFactory().openSession();
-                session.beginTransaction();
-
-                // 2. Calculate total price
-                double total = orderDTO.getCart().stream()
-                        .mapToDouble(item -> {
-                            try {
-                                return Double.parseDouble(item.getDish().getPrice()) * item.getQuantity();
-                            } catch (Exception e) {
-                                return 0.0;
-                            }
-                        }).sum();
-
-                // 3. Create and save the Order
-                Order order = new Order(
-                        total,
-                        orderDTO.getAddress(),
-                        orderDTO.getName(),
-                        orderDTO.getId(),
-                        orderDTO.getCreditCard(),
-                        orderDTO.getDeliveryTime(),
-                        new Date()
-                );
-                session.save(order);
-
-                // 4. Add OrderItems
-                for (CartItem item : orderDTO.getCart()) {
-                    // Fetch the actual Dish from DB by ID
-                    Dish dish = session.get(Dish.class, item.getDish().getId());
-
-                    if (dish != null) {
-                        String prefs = String.join(", ", item.getSelectedPreferences());
-                        OrderItem orderItem = new OrderItem(order, dish, item.getQuantity(), prefs);
-                        session.save(orderItem);
-                    } else {
-                        System.err.println("[WARNING] Dish not found for ID: " + item.getDish().getId());
+                if (client != null && client.isAlive()) {
+                    try {
+                        client.sendToClient(RestaurantDTO);
+                    } catch (IOException e) {
                     }
                 }
 
-                session.getTransaction().commit();
-                session.close();
 
-                client.sendToClient(new responseDTO("OrderSuccess", new Object[]{}));
-            } catch (Exception e) {
-                e.printStackTrace();
+            } else if (msg instanceof OrderSubmissionDTO) {
+                OrderSubmissionDTO orderDTO = (OrderSubmissionDTO) msg;
                 try {
-                    client.sendToClient(new responseDTO("OrderFailure", new Object[]{}));
-                } catch (IOException ioException) {
-                    ioException.printStackTrace();
+                    Session session = getSessionFactory().openSession();
+                    session.beginTransaction();
+
+                    // 2. Calculate total price
+                    double total = orderDTO.getCart().stream()
+                            .mapToDouble(item -> {
+                                try {
+                                    return Double.parseDouble(item.getDish().getPrice()) * item.getQuantity();
+                                } catch (Exception e) {
+                                    return 0.0;
+                                }
+                            }).sum();
+
+                    // 3. Create and save the Order
+                    Order order = new Order(
+                            total,
+                            orderDTO.getAddress(),
+                            orderDTO.getName(),
+                            orderDTO.getId(),
+                            orderDTO.getCreditCard(),
+                            orderDTO.getDeliveryTime(),
+                            new Date()
+                    );
+                    session.save(order);
+
+                    // 4. Add OrderItems
+                    for (CartItem item : orderDTO.getCart()) {
+                        // Fetch the actual Dish from DB by ID
+                        Dish dish = session.get(Dish.class, item.getDish().getId());
+
+                        if (dish != null) {
+                            String prefs = String.join(", ", item.getSelectedPreferences());
+                            OrderItem orderItem = new OrderItem(order, dish, item.getQuantity(), prefs);
+                            session.save(orderItem);
+                        } else {
+                            System.err.println("[WARNING] Dish not found for ID: " + item.getDish().getId());
+                        }
+                    }
+
+                    session.getTransaction().commit();
+                    session.close();
+
+                    client.sendToClient(new responseDTO("OrderSuccess", new Object[]{}));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    try {
+                        client.sendToClient(new responseDTO("OrderFailure", new Object[]{}));
+                    } catch (IOException ioException) {
+                        ioException.printStackTrace();
+                    }
+                }
+            } else if (msgString.startsWith("getOrdersByCustomerId:")) {
+                String customerId = msgString.replace("getOrdersByCustomerId:", "").trim();
+
+                try (Session session = getSessionFactory().openSession()) {
+                    session.beginTransaction();
+
+                    List<Order> orders = session.createQuery("FROM Order WHERE customerId = :id", Order.class)
+                            .setParameter("id", customerId)
+                            .getResultList();
+
+                    List<OrderSummaryDTO> summaries = orders.stream().map(order -> new OrderSummaryDTO(
+                            order.getId(),
+                            order.getCustomerName(),
+                            order.getCustomerId(),
+                            order.getPreferredDeliveryTime(),
+                            order.getAddress(),
+                            order.getTotalPrice(),
+                            order.getOrderDate()
+                    )).collect(Collectors.toList());
+
+                    responseDTO response = new responseDTO("CustomerOrdersResponse", new Object[]{summaries});
+                    client.sendToClient(response);
+
+                    session.getTransaction().commit();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else if (msg instanceof OrderCancellationDTO) {
+                OrderCancellationDTO cancelRequest = (OrderCancellationDTO) msg;
+
+                try (Session session = getSessionFactory().openSession()) {
+                    session.beginTransaction();
+
+                    Order order = session.get(Order.class, cancelRequest.getOrderId());
+
+                    if (order == null || !order.getCustomerId().equals(cancelRequest.getCustomerId())) {
+                        client.sendToClient(new responseDTO("OrderCancellationFailure", new Object[]{"Order not found or customer ID mismatch."}));
+                        return;
+                    }
+
+                    // Calculate refund based on delivery time
+                    LocalDateTime now = LocalDateTime.now();
+                    LocalDateTime deliveryTime = order.getPreferredDeliveryTime();
+
+                    long minutesUntilDelivery = ChronoUnit.MINUTES.between(now, deliveryTime);
+                    double refund;
+                    if (minutesUntilDelivery >= 180) {
+                        refund = order.getTotalPrice(); // Full refund
+                    } else if (minutesUntilDelivery >= 60) {
+                        refund = order.getTotalPrice() * 0.5; // 50%
+                    } else {
+                        refund = 0.0; // No refund
+                    }
+
+                    // Delete the order — cascading should handle orderItems (if mapped correctly)
+                    session.delete(order);
+                    session.getTransaction().commit();
+
+                    client.sendToClient(new responseDTO("OrderCancellationSuccess", new Object[]{refund}));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    try {
+                        client.sendToClient(new responseDTO("OrderCancellationFailure", new Object[]{"Server error during deletion."}));
+                    } catch (IOException ioException) {
+                        ioException.printStackTrace();
+                    }
                 }
             }
         }
-        else if (msgString.startsWith("getOrdersByCustomerId:")) {
-            String customerId = msgString.replace("getOrdersByCustomerId:", "").trim();
-
-            try (Session session = getSessionFactory().openSession()) {
-                session.beginTransaction();
-
-                List<Order> orders = session.createQuery("FROM Order WHERE customerId = :id", Order.class)
-                        .setParameter("id", customerId)
-                        .getResultList();
-
-                List<OrderSummaryDTO> summaries = orders.stream().map(order -> new OrderSummaryDTO(
-                        order.getId(),
-                        order.getCustomerName(),
-                        order.getCustomerId(),
-                        order.getPreferredDeliveryTime(),
-                        order.getAddress(),
-                        order.getTotalPrice(),
-                        order.getOrderDate()
-                )).collect(Collectors.toList());
-
-                responseDTO response = new responseDTO("CustomerOrdersResponse", new Object[]{summaries});
-                client.sendToClient(response);
-
-                session.getTransaction().commit();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-
-        else if (msg instanceof OrderCancellationDTO) {
-            OrderCancellationDTO cancelRequest = (OrderCancellationDTO) msg;
-
-            try (Session session = getSessionFactory().openSession()) {
-                session.beginTransaction();
-
-                Order order = session.get(Order.class, cancelRequest.getOrderId());
-
-                if (order == null || !order.getCustomerId().equals(cancelRequest.getCustomerId())) {
-                    client.sendToClient(new responseDTO("OrderCancellationFailure", new Object[]{"Order not found or customer ID mismatch."}));
-                    return;
-                }
-
-                // Calculate refund based on delivery time
-                LocalDateTime now = LocalDateTime.now();
-                LocalDateTime deliveryTime = order.getPreferredDeliveryTime();
-
-                long minutesUntilDelivery = ChronoUnit.MINUTES.between(now, deliveryTime);
-                double refund;
-                if (minutesUntilDelivery >= 180) {
-                    refund = order.getTotalPrice(); // Full refund
-                } else if (minutesUntilDelivery >= 60) {
-                    refund = order.getTotalPrice() * 0.5; // 50%
-                } else {
-                    refund = 0.0; // No refund
-                }
-
-                // Delete the order — cascading should handle orderItems (if mapped correctly)
-                session.delete(order);
-                session.getTransaction().commit();
-
-                client.sendToClient(new responseDTO("OrderCancellationSuccess", new Object[]{refund}));
-            } catch (Exception e) {
-                e.printStackTrace();
-                try {
-                    client.sendToClient(new responseDTO("OrderCancellationFailure", new Object[]{"Server error during deletion."}));
-                } catch (IOException ioException) {
-                    ioException.printStackTrace();
-                }
-            }
-        }
-
-
-
-
-
-
     }
 
     public static void initializeSessionFactory() throws HibernateException {
