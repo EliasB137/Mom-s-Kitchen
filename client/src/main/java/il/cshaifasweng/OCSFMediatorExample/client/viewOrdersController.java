@@ -1,7 +1,9 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
+import il.cshaifasweng.OCSFMediatorExample.entities.DTO.Events.CancellationResultEvent;
 import il.cshaifasweng.OCSFMediatorExample.entities.DTO.OrderCancellationDTO;
 import il.cshaifasweng.OCSFMediatorExample.entities.DTO.OrderSummaryDTO;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -73,6 +75,7 @@ public class viewOrdersController {
                         messageLabel.setText("Cancellation failed.");
                         e.printStackTrace();
                     }
+
                 });
 
             }
@@ -84,10 +87,30 @@ public class viewOrdersController {
             }
         });
     }
+//Platform.runLater(...) ensures the UI update runs on the correct JavaFX thread.
+@Subscribe
+public void handleCancellationResult(CancellationResultEvent event) {
+    Platform.runLater(() -> {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Order Cancellation");
+        alert.setHeaderText(null);
+        alert.setContentText("The refund amount is : " + event.getMessage());
+        alert.showAndWait(); // Show the popup and wait for user acknowledgment
+    });
+
+    try {
+        SimpleClient.getClient().sendToServer("getOrdersByCustomerId:" + idField.getText());
+    } catch (IOException e) {
+        throw new RuntimeException(e);
+    }
+}
+
+
     @Subscribe
     public void handleOrders(List<OrderSummaryDTO> event) {
         if (event == null || event.isEmpty()) {
             System.out.println("No dishes available.");
+            orderList.setAll(event);
             return;
         }
 
@@ -102,9 +125,13 @@ public class viewOrdersController {
     }
     @FXML
     public void handleBack() {
+        onClose();
         SimpleClient.getClient().navigateTo("customerHomeView");
     }
     public void displayMessage(String msg) {
         messageLabel.setText(msg);
+    }
+    public void onClose() {
+        EventBus.getDefault().unregister(this);
     }
 }
