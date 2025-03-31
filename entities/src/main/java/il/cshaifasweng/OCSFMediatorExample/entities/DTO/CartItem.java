@@ -1,10 +1,9 @@
-package il.cshaifasweng.OCSFMediatorExample.client;
+package il.cshaifasweng.OCSFMediatorExample.entities.DTO;
 
-import il.cshaifasweng.OCSFMediatorExample.entities.DTO.dishDTO;
-
+import java.io.Serializable;
 import java.util.List;
 
-public class CartItem {
+public class CartItem implements Serializable {
     private dishDTO dish;
     private List<String> selectedPreferences;
     private int quantity;

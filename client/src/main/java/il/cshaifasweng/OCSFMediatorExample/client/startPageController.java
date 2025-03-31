@@ -92,6 +92,7 @@ public class startPageController {
         SimpleClient.setSelectedRestaurant(selectedRestaurant);
         System.out.println("[DEBUG] Selected restaurant stored: " + SimpleClient.getSelectedRestaurant());
         System.out.println("Navigating to customerHomeView with restaurant: " + selectedRestaurant);
+        onClose();
         SimpleClient.getClient().navigateTo("customerHomeView");
     }
 
@@ -109,4 +110,8 @@ public class startPageController {
         alert.setContentText(message);
         alert.showAndWait();
     }
+    public void onClose() {
+        EventBus.getDefault().unregister(this);
+    }
+
 }

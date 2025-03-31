@@ -1,6 +1,7 @@
 
 package il.cshaifasweng.OCSFMediatorExample.client;
 
+import il.cshaifasweng.OCSFMediatorExample.entities.DTO.CartItem;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -98,6 +99,8 @@ public class cartController {
     }
 
     private void handleCheckout() {
+
         System.out.println("Checkout pressed - TODO: implement order submission.");
+        SimpleClient.getClient().navigateTo("fillDetailsView");
     }
 }

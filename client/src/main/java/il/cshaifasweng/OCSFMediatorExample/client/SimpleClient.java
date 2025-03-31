@@ -1,6 +1,7 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
 import il.cshaifasweng.OCSFMediatorExample.client.events.HoursEvent;
+import il.cshaifasweng.OCSFMediatorExample.entities.DTO.Events.CancellationResultEvent;
 import il.cshaifasweng.OCSFMediatorExample.entities.DTO.dishDTO;
 import il.cshaifasweng.OCSFMediatorExample.entities.DTO.*;
 import javafx.fxml.FXMLLoader;
@@ -10,8 +11,6 @@ import javafx.stage.Stage;
 import org.greenrobot.eventbus.EventBus;
 import il.cshaifasweng.OCSFMediatorExample.client.ocsf.AbstractClient;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -70,51 +69,82 @@ public class SimpleClient extends AbstractClient {
 
 	@Override
 	protected void handleMessageFromServer(Object msg) {
-		System.out.println("the message was recieved");
+		System.out.println("Message received from server.");
+
 		if (msg instanceof responseDTO) {
-			System.out.println("the message is responeDTO type");
 			responseDTO response = (responseDTO) msg;
 			String message = response.getMessage();
 
-			if (message.equals("MenuResponse") || message.equals("MenuForRestaurant")) {
-				System.out.println("Client received `" + message + "` from server.");
-				List<dishDTO> dishes = (List<dishDTO>) response.getPayload()[0];
-				EventBus.getDefault().post(dishes);
-			}
+			switch (message) {
+				case "MenuResponse":
+				case "MenuForRestaurant":
+					List<dishDTO> dishes = (List<dishDTO>) response.getPayload()[0];
+					EventBus.getDefault().post(dishes);
+					break;
 
+				case "restaurants":
+					List<restaurantDTO> restaurants = (List<restaurantDTO>) response.getPayload()[0];
+					EventBus.getDefault().post(restaurants);
+					break;
 
-			else if (message.equals("restaurants"))
-			{
-				System.out.println("Client received `restaurants` from server.");
-				List<restaurantDTO> restaurantsDTO = (List<restaurantDTO>)response.getPayload()[0];
-				EventBus.getDefault().post(restaurantsDTO);
+				case "CustomerOrdersResponse":
+					List<OrderSummaryDTO> orderSummaries = (List<OrderSummaryDTO>) response.getPayload()[0];
+					EventBus.getDefault().post(orderSummaries);
+					break;
 
-			} else if (message.equals("availableHours")) {
-				System.out.println("Client received `" + message + "` from server.");
-				List<String> Hours = (List<String>) response.getPayload()[0];
-				HoursEvent event = new HoursEvent(Hours);
-				EventBus.getDefault().post(event);
+                case "restaurants":
+                    System.out.println("Client received `restaurants` from server.");
+                    List<restaurantDTO> restaurantsDTO = (List<restaurantDTO>)response.getPayload()[0];
+                    EventBus.getDefault().post(restaurantsDTO);
+                    break;
+
+                case "availableHours":
+                    System.out.println("Client received `" + message + "` from server.");
+                    List<String> Hours = (List<String>) response.getPayload()[0];
+                    HoursEvent event = new HoursEvent(Hours);
+                    EventBus.getDefault().post(event);
+                    break;
+
+               case "OrderCancellationSuccess":
+					System.out.println("test1");
+					System.out.println("Payload length: " + response.getPayload().length);
+					System.out.println("Payload first element class: " + response.getPayload()[0].getClass().getName());
+					System.out.println("Payload first element value: " + response.getPayload()[0].toString());
+					String cancelMsg = response.getPayload()[0].toString();
+					System.out.println("test");
+					EventBus.getDefault().post(new CancellationResultEvent(cancelMsg));
+					System.out.println("test3");
+					break;
+
+				default:
+					System.out.println("[WARN] Unknown responseDTO message: " + message);
 			}
 		} else if (msg instanceof restaurantDTO) {
-			System.out.println("the message is restaurantDTO type");
-			restaurantDTO response = (restaurantDTO) msg;
-			EventBus.getDefault().post(response);
-
-
-		} else
-		{
-			System.out.println("ERROR: Unknown message type received: " + msg.getClass().getName());
-			System.out.println("Client received raw message: " + msg.toString());
+			EventBus.getDefault().post((restaurantDTO) msg);
+		} else {
+			System.err.println("Unknown message type: " + msg.getClass().getName());
+			System.err.println("Raw message: " + msg.toString());
 		}
-
 	}
 
 	public Object navigateTo(String fxmlFileName) {
 		try {
 			System.out.println("Navigating to " + fxmlFileName);
 
-			FXMLLoader loader = new FXMLLoader(getClass().getResource("/il/cshaifasweng/OCSFMediatorExample/client/" + fxmlFileName + ".fxml"));
+			// Get the current controller from the scene if available
+			Scene currentScene = App.getPrimaryStage().getScene();
+			if (currentScene != null && currentScene.getUserData() instanceof Object) {
+				Object currentController = currentScene.getUserData();
+				// Check if it's registered with EventBus and unregister if so
+				if (EventBus.getDefault().isRegistered(currentController)) {
+					EventBus.getDefault().unregister(currentController);
+					System.out.println("Unregistered controller from EventBus: " +
+							currentController.getClass().getSimpleName());
+				}
+			}
 
+			// Load the new view
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("/il/cshaifasweng/OCSFMediatorExample/client/" + fxmlFileName + ".fxml"));
 			Parent root = loader.load();
 			Object controller = loader.getController();
 
@@ -129,11 +159,13 @@ public class SimpleClient extends AbstractClient {
 				return null;
 			}
 
-			stage.setScene(new Scene(root));
+			// Set the new scene and store the controller for later cleanup
+			Scene scene = new Scene(root);
+			scene.setUserData(controller);
+			stage.setScene(scene);
 			stage.show();
 
-			return controller;  // Return the controller instance
-
+			return controller;
 		} catch (IOException e) {
 			System.err.println("ERROR: Could not load FXML file " + fxmlFileName);
 			e.printStackTrace();
