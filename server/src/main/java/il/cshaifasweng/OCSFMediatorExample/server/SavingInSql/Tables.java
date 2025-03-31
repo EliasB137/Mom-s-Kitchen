@@ -3,6 +3,7 @@ package il.cshaifasweng.OCSFMediatorExample.server.SavingInSql;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -16,26 +17,26 @@ public class Tables implements Serializable {
     @Column(name = "seats")
     private int seats;
 
-    @Column(name = "tb_bool")
-    private boolean available;
+    @Column(name = "table_in")
+    private boolean tableIn;
 
-    @Column(name = "tb_int")
-    private int tbInt;
+    @Column(name = "restaurant_id")
+    private String restaurant;
 
-    @ManyToOne
-    @JoinColumn(name = "restaurant_id")
-    private Restaurant restaurant;
-
-    @OneToMany(mappedBy = "table", cascade = CascadeType.ALL)
-    private Set<Reservation> reservations = new HashSet<>();
+    @ElementCollection
+    @CollectionTable(
+            name = "restaurant_reservations",
+            joinColumns = @JoinColumn(name = "table_id")
+    )
+    @Column(name = "reservations")
+    private List<Integer> reservations;
 
     // Constructors
     public Tables() {}
 
-    public Tables(int seats, boolean available, int tbInt, Restaurant restaurant) {
+    public Tables(int seats, boolean tableIn, String restaurant) {
         this.seats = seats;
-        this.available = available;
-        this.tbInt = tbInt;
+        this.tableIn = tableIn;
         this.restaurant = restaurant;
     }
 
@@ -46,37 +47,32 @@ public class Tables implements Serializable {
     public int getSeats() { return seats; }
     public void setSeats(int seats) { this.seats = seats; }
 
-    public boolean isAvailable() { return available; }
-    public void setAvailable(boolean available) { this.available = available; }
+    public boolean getTableIn() { return tableIn; }
+    public void setTableIn(boolean tableIn) { this.tableIn = tableIn; }
 
-    public int getTbInt() { return tbInt; }
-    public void setTbInt(int tbInt) { this.tbInt = tbInt; }
+    public String getRestaurant() { return restaurant; }
+    public void setRestaurant(String restaurant) { this.restaurant = restaurant; }
 
-    public Restaurant getRestaurant() { return restaurant; }
-    public void setRestaurant(Restaurant restaurant) { this.restaurant = restaurant; }
-
-    public Set<Reservation> getReservations() { return reservations; }
-    public void setReservations(Set<Reservation> reservations) { this.reservations = reservations; }
+    public List<Integer> getReservations() { return reservations; }
+    public void setReservations(List<Integer> reservations) { this.reservations = reservations; }
 
     // Helper method to add a reservation
-    public void addReservation(Reservation reservation) {
+    public void addReservation(int reservation) {
         reservations.add(reservation);
-        reservation.setTable(this);
     }
 
-    // Helper method to remove a reservation
-    public void removeReservation(Reservation reservation) {
-        reservations.remove(reservation);
-    }
+//    // Helper method to remove a reservation
+//    public void removeReservation(Reservation reservation) {
+//        reservations.remove(reservation);
+//    }
 
     @Override
     public String toString() {
         return "Table{" +
                 "id=" + id +
                 ", seats=" + seats +
-                ", available=" + available +
-                ", tbInt=" + tbInt +
-                ", restaurant=" + (restaurant != null ? restaurant.getName() : "null") +
+                ", tbInt=" + tableIn +
+                ", restaurant=" + restaurant +
                 ", reservationCount=" + reservations.size() +
                 '}';
     }

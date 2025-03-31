@@ -6,9 +6,10 @@ import il.cshaifasweng.OCSFMediatorExample.server.ocsf.AbstractServer;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.ConnectionToClient;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Scanner;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -110,6 +111,90 @@ public class MomServer extends AbstractServer {
                 session.close();
             }
         }
+        session = null;
+        try {
+            SessionFactory sessionFactory = getSessionFactory();
+            session = sessionFactory.openSession();
+            session.beginTransaction();
+
+            List<Tables> tablesList = session.createQuery("FROM Tables", Tables.class).getResultList();
+            if (tablesList.isEmpty()) {
+                Query<Restaurant> query = session.createQuery("FROM Restaurant WHERE name = :name", Restaurant.class);
+                query.setParameter("name", "Golden Gate Bites");
+                Restaurant restaurantAddTableTo = query.uniqueResult();
+
+                System.out.println("No tables found! Adding test tables...");
+                Tables table = new Tables(2, true, "Golden Gate Bites");
+                session.save(table);
+                session.flush();
+
+                restaurantAddTableTo.addTable(table.getId());
+                session.update(restaurantAddTableTo);
+
+                table = new Tables(3, true, "Golden Gate Bites");
+                session.save(table);
+                session.flush();
+
+                restaurantAddTableTo.addTable(table.getId());
+                session.update(restaurantAddTableTo);
+
+                table = new Tables(4, true, "Golden Gate Bites");
+                session.save(table);
+                session.flush();
+
+                restaurantAddTableTo.addTable(table.getId());
+                session.update(restaurantAddTableTo);
+
+                System.out.println("Linked " + table.getId() + " to " + restaurantAddTableTo.getName());
+            }
+            session.getTransaction().commit();
+        }catch (Exception e) {
+            if (session != null) {
+                session.getTransaction().rollback();
+            }
+            System.err.println("ERROR: Failed to add test Tables!!");
+            e.printStackTrace();
+        } finally {
+            if (session != null) {
+                session.close();
+            }
+        }
+
+        session = null;
+        try {
+            SessionFactory sessionFactory = getSessionFactory();
+            session = sessionFactory.openSession();
+            session.beginTransaction();
+
+            List<Reservation> tablesList = session.createQuery("FROM Reservation ", Reservation.class).getResultList();
+            if (tablesList.isEmpty()) {
+                Query<Tables> query = session.createQuery("FROM Tables WHERE id = :id", Tables.class);
+                query.setParameter("id", 2);
+                Tables tableAddReservationTo = query.uniqueResult();
+
+                Reservation reservation = new Reservation(Arrays.asList(2),"2025-04-04","10:00","Golden Gate Bites","tony","tonysabbah@gmail.com","123412341234,123");
+                session.save(reservation);
+                session.flush();
+
+                tableAddReservationTo.addReservation(reservation.getId());
+                session.update(tableAddReservationTo);
+
+                System.out.println("Linked " + reservation.getId() + " to " + tableAddReservationTo.getId());
+            }
+            session.getTransaction().commit();
+        }catch (Exception e) {
+            if (session != null) {
+                session.getTransaction().rollback();
+            }
+            System.err.println("ERROR: Failed to add test Tables!!");
+            e.printStackTrace();
+        } finally {
+            if (session != null) {
+                session.close();
+            }
+        }
+
+
     }
 
 
@@ -119,192 +204,258 @@ public class MomServer extends AbstractServer {
 
     @Override
     protected void handleMessageFromClient(Object msg, ConnectionToClient client) {
+        if(msg instanceof responseDTO){
+            responseDTO message = (responseDTO) msg;
+            String command = message.getMessage();
+            Object[] payload = message.getPayload();
 
-        String msgString = msg.toString();
-        if (msgString.equals("getMenu")) {
-            System.out.println("Server received 'getMenu' request.");
+            if(command.equals("getHours"))
+            {
+                System.out.println("[DEBUG] Command availableHours ");
 
-            try {
+                LocalDate date = (LocalDate) payload[0];
+                String time = payload[1].toString();
+                String inOrOut = payload[2].toString();
+                String numberOfGuest = payload[3].toString();
+                String restaurantName = payload[4].toString();
+
                 Session session = sessionFactory.openSession();
                 session.beginTransaction();
 
-                List<Dish> dishes = session.createQuery("FROM Dish", Dish.class).getResultList();
-                for (Dish dish : dishes) {
-                    Hibernate.initialize(dish.getAvailablePreferences());
-                    Hibernate.initialize(dish.getRestaurantNames()); // <- This solves the LazyInitializationException
+                String hql1 = "FROM Reservation r WHERE r.restaurant = :givenRestaurantName AND r.date = :givenDate";
+
+                List<Reservation> reservations = null;
+                try {
+                    Query<Reservation> query1 = session.createQuery(hql1, Reservation.class);
+                    query1.setParameter("givenRestaurantName", restaurantName);
+                    query1.setParameter("givenDate", date.toString());
+                    reservations = query1.list();
+                    System.out.println("[DEBUG] Got " + reservations.size() + " reservations " + date.toString()+ " " + restaurantName);
+                } catch (Exception e) {
+                    System.out.println("[DEBUG] Query error: " + e.getMessage());
+                    e.printStackTrace();
                 }
 
+                for (Reservation reservation : reservations) {
+                    Hibernate.initialize(reservation.getTable());
+                }
+
+                String hql2 = "FROM Tables r WHERE r.restaurant = :givenRestaurantName AND r.tableIn = :isInTable";
+
+                Query query2 = session.createQuery(hql2);
+                query2.setParameter("givenRestaurantName", restaurantName);
+                if(inOrOut.equals("Inside"))
+                    query2.setParameter("isInTable", true);
+                else
+                    query2.setParameter("isInTable", false);
+                List<Tables> tables = query2.list();
+                for (Tables table : tables) {
+                    Hibernate.initialize(table.getReservations());
+                }
                 session.getTransaction().commit();
                 session.close();
 
-                if (dishes.isEmpty()) {
-                    System.out.println("[ERROR] No dishes found in database.");
-                } else {
-                    System.out.println("[DEBUG] Total Dishes in DB: " + dishes.size());
-                    for (Dish dish : dishes) {
-                        System.out.println("Dish: " + dish.getName());
-                    }
-                }
-                List<dishDTO> dishesDTO = DTOConverter.convertToDishDTOList(dishes);
-
-                if (dishesDTO == null) {
-                    System.err.println("[ERROR] dishesDTO is null!");
-                } else {
-                    System.out.println("[DEBUG] dishesDTO: " + dishesDTO);
-                }
-
-                responseDTO response = new responseDTO("MenuResponse",new Object[]{dishesDTO});
-                client.sendToClient(response);
+                System.out.println("[DEBUG] Got  " + tables.size() + " tables");
 
 
-            } catch (Exception e) {
-                System.err.println("ERROR: Failed to fetch dishes!");
-                e.printStackTrace();
-            }
-        }
+        List<String> hours = getAvailableHours(reservations,tables,restaurantName,numberOfGuest,date);
 
+                System.out.println("[DEBUG] Got " + hours.size() + " hours");
 
-
-        else if (msgString.equals("getRestaurants")) {
-            System.out.println("Server received 'getRestaurants' request!");
-
-            List<Restaurant> restaurantList = null;
-
-            try {
-                SessionFactory sessionFactory = getSessionFactory();
-                session = sessionFactory.openSession();
-                session.beginTransaction();
-
-                // Using Criteria API to fetch restaurants
-                CriteriaBuilder builder = session.getCriteriaBuilder();
-                CriteriaQuery<Restaurant> query = builder.createQuery(Restaurant.class);
-                query.from(Restaurant.class);
-                restaurantList = session.createQuery(query).getResultList();
-
-                // THIS IS NEEDED FOR THE ARRAY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                for (Restaurant restaurant : restaurantList) {
-                    Hibernate.initialize(restaurant.getOpeningHours());
-                }
-
-                session.getTransaction().commit();
-            } catch (Exception e) {
-                if (session != null) {
-                    session.getTransaction().rollback();
-                }
-                System.err.println("ERROR: Failed to fetch restaurants from the database!");
-                e.printStackTrace();
-            } finally {
-                if (session != null) {
-                    session.close();
-                }
-            }
-            // Ensure data exists before sending
-            if (restaurantList == null || restaurantList.isEmpty()) {
-                System.out.println("No restaurants found.");
-                return;
-            }
-            List<restaurantDTO> restaurantsDTO = DTOConverter.convertToRestaurantDTOList(restaurantList);
-
-            if (restaurantsDTO == null) {
-                System.err.println("[ERROR] dishesDTO is null!");
-            } else {
-                System.out.println("[DEBUG] dishesDTO: " + restaurantsDTO);
-            }
-            responseDTO response = new responseDTO("restaurants",new Object[]{restaurantsDTO});
-
-
-            if (client != null && client.isAlive()) {
+                responseDTO response = new responseDTO("availableHours",new Object[]{hours});
                 try {
                     client.sendToClient(response);
-                }
-                catch (IOException e) {}
-            }
-        }
-
-
-        else if (msgString.startsWith("getMenuForRestaurant:")) {
-            String restaurantName = msgString.replace("getMenuForRestaurant:", "").trim();
-            System.out.println("Server received 'getMenuForRestaurant' request for: " + restaurantName);
-
-            try {
-                Session session = sessionFactory.openSession();
-                session.beginTransaction();
-
-                List<Dish> filteredDishes = session.createQuery("FROM Dish", Dish.class)
-                        .getResultList()
-                        .stream()
-                        .filter(d -> d.getRestaurantNames().contains(restaurantName) || d.getRestaurantNames().contains("All"))
-                        .collect(Collectors.toList());
-
-                List<dishDTO> dishDTOs = DTOConverter.convertToDishDTOList(filteredDishes);
-                responseDTO response = new responseDTO("MenuForRestaurant", new Object[]{dishDTOs});
-                client.sendToClient(response);
-
-
-                session.getTransaction().commit();
-                session.close();
-
-
-            } catch (Exception e) {
-                System.err.println("ERROR: Failed to fetch menu for restaurant!");
-                e.printStackTrace();
-            }
-        } else if (msgString.startsWith("getRestaurantByName:")) {
-            String restaurantName = msgString.replace("getRestaurantByName:", "").trim();
-            System.out.println("Server received 'getRestaurantByName' request for: " + restaurantName);
-
-            Session session = sessionFactory.openSession();
-            Restaurant restaurant = null;
-
-            try {
-                String hql = "FROM Restaurant r WHERE r.name = :restaurantName";
-                Query<Restaurant> query = session.createQuery(hql, Restaurant.class);
-                query.setParameter("restaurantName", restaurantName);
-
-                restaurant = query.uniqueResult();  // Can be null if no match found
-
-                Hibernate.initialize(restaurant.getOpeningHours());
-
-
-            } catch (Exception e) {
-                e.printStackTrace();  // Log any errors
-            } finally {
-                session.close();  // Ensure session is closed
-            }
-
-            if (restaurant != null) {
-                System.out.println("[DEBUG] Got Restaurant from Database: " + restaurant);
-            } else {
-                System.out.println("[DEBUG] No restaurant found with name: " + restaurantName);
-            }
-
-            restaurantDTO RestaurantDTO = DTOConverter.convertToRestaurantDTO(restaurant);
-
-            System.out.println("[DEBUG] converted restaurant and now sending it " + restaurant);
-
-            if (client != null && client.isAlive()) {
-                try {
-                    client.sendToClient(RestaurantDTO);
-                }
-                catch (IOException e) {}
-            }
-
-        } else if(msgString.startsWith("updatePrice")) {
-            String[] parts = msgString.split("\\|");
-            if (parts.length == 3) {
-                int id = Integer.parseInt(parts[1]);
-                try {
-                    updateDish(id,parts[2]);
-                } catch (Exception e) {
+                } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
             }
-        }
-        else if(msgString.startsWith("addDish")) {
-            String[] parts = msgString.split("\\|");
-            if (parts.length == 5) {
-                int id = Integer.parseInt(parts[1]);
+        }else {
+            String msgString = msg.toString();
+            if (msgString.equals("getMenu")) {
+                System.out.println("Server received 'getMenu' request.");
 
+                try {
+                    Session session = sessionFactory.openSession();
+                    session.beginTransaction();
+
+                    List<Dish> dishes = session.createQuery("FROM Dish", Dish.class).getResultList();
+                    for (Dish dish : dishes) {
+                        Hibernate.initialize(dish.getAvailablePreferences());
+                        Hibernate.initialize(dish.getRestaurantNames()); // <- This solves the LazyInitializationException
+                    }
+
+                    session.getTransaction().commit();
+                    session.close();
+
+                    if (dishes.isEmpty()) {
+                        System.out.println("[ERROR] No dishes found in database.");
+                    } else {
+                        System.out.println("[DEBUG] Total Dishes in DB: " + dishes.size());
+                        for (Dish dish : dishes) {
+                            System.out.println("Dish: " + dish.getName());
+                        }
+                    }
+                    List<dishDTO> dishesDTO = DTOConverter.convertToDishDTOList(dishes);
+
+                    if (dishesDTO == null) {
+                        System.err.println("[ERROR] dishesDTO is null!");
+                    } else {
+                        System.out.println("[DEBUG] dishesDTO: " + dishesDTO);
+                    }
+
+                    responseDTO response = new responseDTO("MenuResponse",new Object[]{dishesDTO});
+                    client.sendToClient(response);
+
+
+                } catch (Exception e) {
+                    System.err.println("ERROR: Failed to fetch dishes!");
+                    e.printStackTrace();
+                }
+            }
+
+
+
+            else if (msgString.equals("getRestaurants")) {
+                System.out.println("Server received 'getRestaurants' request!");
+
+                List<Restaurant> restaurantList = null;
+
+                try {
+                    SessionFactory sessionFactory = getSessionFactory();
+                    session = sessionFactory.openSession();
+                    session.beginTransaction();
+
+                    // Using Criteria API to fetch restaurants
+                    CriteriaBuilder builder = session.getCriteriaBuilder();
+                    CriteriaQuery<Restaurant> query = builder.createQuery(Restaurant.class);
+                    query.from(Restaurant.class);
+                    restaurantList = session.createQuery(query).getResultList();
+
+                    // THIS IS NEEDED FOR THE ARRAY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                    for (Restaurant restaurant : restaurantList) {
+                        Hibernate.initialize(restaurant.getOpeningHours());
+                    }
+
+                    session.getTransaction().commit();
+                } catch (Exception e) {
+                    if (session != null) {
+                        session.getTransaction().rollback();
+                    }
+                    System.err.println("ERROR: Failed to fetch restaurants from the database!");
+                    e.printStackTrace();
+                } finally {
+                    if (session != null) {
+                        session.close();
+                    }
+                }
+                // Ensure data exists before sending
+                if (restaurantList == null || restaurantList.isEmpty()) {
+                    System.out.println("No restaurants found.");
+                    return;
+                }
+                List<restaurantDTO> restaurantsDTO = DTOConverter.convertToRestaurantDTOList(restaurantList);
+
+                if (restaurantsDTO == null) {
+                    System.err.println("[ERROR] dishesDTO is null!");
+                } else {
+                    System.out.println("[DEBUG] dishesDTO: " + restaurantsDTO);
+                }
+                responseDTO response = new responseDTO("restaurants",new Object[]{restaurantsDTO});
+
+
+                if (client != null && client.isAlive()) {
+                    try {
+                        client.sendToClient(response);
+                    }
+                    catch (IOException e) {}
+                }
+            }
+
+
+            else if (msgString.startsWith("getMenuForRestaurant:")) {
+                String restaurantName = msgString.replace("getMenuForRestaurant:", "").trim();
+                System.out.println("Server received 'getMenuForRestaurant' request for: " + restaurantName);
+
+                try {
+                    Session session = sessionFactory.openSession();
+                    session.beginTransaction();
+
+                    List<Dish> filteredDishes = session.createQuery("FROM Dish", Dish.class)
+                            .getResultList()
+                            .stream()
+                            .filter(d -> d.getRestaurantNames().contains(restaurantName) || d.getRestaurantNames().contains("All"))
+                            .collect(Collectors.toList());
+
+                    List<dishDTO> dishDTOs = DTOConverter.convertToDishDTOList(filteredDishes);
+                    responseDTO response = new responseDTO("MenuForRestaurant", new Object[]{dishDTOs});
+                    client.sendToClient(response);
+
+
+                    session.getTransaction().commit();
+                    session.close();
+
+
+                } catch (Exception e) {
+                    System.err.println("ERROR: Failed to fetch menu for restaurant!");
+                    e.printStackTrace();
+                }
+            } else if (msgString.startsWith("getRestaurantByName:")) {
+                String restaurantName = msgString.replace("getRestaurantByName:", "").trim();
+                System.out.println("Server received 'getRestaurantByName' request for: " + restaurantName);
+
+                Session session = sessionFactory.openSession();
+                Restaurant restaurant = null;
+
+                try {
+                    String hql = "FROM Restaurant r WHERE r.name = :restaurantName";
+                    Query<Restaurant> query = session.createQuery(hql, Restaurant.class);
+                    query.setParameter("restaurantName", restaurantName);
+
+                    restaurant = query.uniqueResult();  // Can be null if no match found
+
+                    Hibernate.initialize(restaurant.getOpeningHours());
+
+
+                } catch (Exception e) {
+                    e.printStackTrace();  // Log any errors
+                } finally {
+                    session.close();  // Ensure session is closed
+                }
+
+                if (restaurant != null) {
+                    System.out.println("[DEBUG] Got Restaurant from Database: " + restaurant);
+                } else {
+                    System.out.println("[DEBUG] No restaurant found with name: " + restaurantName);
+                }
+
+                restaurantDTO RestaurantDTO = DTOConverter.convertToRestaurantDTO(restaurant);
+
+                System.out.println("[DEBUG] converted restaurant and now sending it " + restaurant);
+
+                if (client != null && client.isAlive()) {
+                    try {
+                        client.sendToClient(RestaurantDTO);
+                    }
+                    catch (IOException e) {}
+                }
+
+            } else if(msgString.startsWith("updatePrice")) {
+                String[] parts = msgString.split("\\|");
+                if (parts.length == 3) {
+                    int id = Integer.parseInt(parts[1]);
+                    try {
+                        updateDish(id,parts[2]);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+            else if(msgString.startsWith("addDish")) {
+                String[] parts = msgString.split("\\|");
+                if (parts.length == 5) {
+                    int id = Integer.parseInt(parts[1]);
+
+                }
             }
         }
     }
@@ -420,8 +571,117 @@ public class MomServer extends AbstractServer {
         }
     }
 
+    public static List<String> getAvailableHours(List<Reservation> reservations,List<Tables> tables,String  restaurantName,String numberOfGuest,LocalDate date) {
+        SessionFactory sessionFactory = getSessionFactory();
+        session = sessionFactory.openSession();
+        session.beginTransaction();
+
+        Query<Restaurant> query = session.createQuery("FROM Restaurant WHERE name = :name", Restaurant.class);
+        query.setParameter("name", "Golden Gate Bites");
+        Restaurant restaurant = query.uniqueResult(); // Returns null if not found, or the restaurant if found
+
+        Hibernate.initialize(restaurant.getOpeningHours());
+        session.getTransaction().commit();
+        session.close();
+
+        String hours = restaurant.getOpeningHourForDay(date.getDayOfWeek().toString().toLowerCase());
+
+        String[] parts = hours.split("-");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+        LocalTime start = LocalTime.parse(parts[0], formatter);
+        LocalTime end = LocalTime.parse(parts[1], formatter).minusHours(1);
+
+        List<String> availableHours = new ArrayList<>();
+        int requestedGuests = Integer.parseInt(numberOfGuest);
+
+        // Iterate from start to end in 15-minute steps
+        while (!start.isAfter(end)) {
+            LocalTime currentTime = start;
+
+            // Create lists for available tables based on seating capacity
+            List<Tables> availableTables2 = new ArrayList<>();
+            List<Tables> availableTables3 = new ArrayList<>();
+            List<Tables> availableTables4 = new ArrayList<>();
+
+            for (Tables table : tables) {
+                boolean isAvailable = true;
+
+                // Check if this table is already reserved at this time or an hour before
+                for (Reservation reservation : reservations) {
+                    LocalTime reservationTime = LocalTime.parse(reservation.getTime(), formatter);
+                    List<Integer> reservedTableIds = reservation.getTable();
+                    if (reservedTableIds.contains(table.getId())) {
+                        // Check if the reservation overlaps with current time
+                        // (reservation time is within 1 hour before or after current time)
+                        if (reservationTime.equals(currentTime) ||
+                                (reservationTime.isBefore(currentTime) &&
+                                reservationTime.plusHours(1).isAfter(currentTime)) ||
+                                (reservationTime.isAfter(currentTime) &&
+                                        reservationTime.isBefore(currentTime.plusHours(1)))) {
+                            isAvailable = false;
+                            break;
+                        }
+                    }
+                }
+                // If the table is available, add it to the appropriate list
+                if (isAvailable) {
+                    if (table.getSeats() == 2) {
+                        availableTables2.add(table);
+                    } else if (table.getSeats() == 3) {
+                        availableTables3.add(table);
+                    } else if (table.getSeats() == 4) {
+                        availableTables4.add(table);
+                    }
+                }
+            }
+            int totalCapacity = 0;
+            List<Tables> allAvailableTables = new ArrayList<>();
+            allAvailableTables.addAll(availableTables2);
+            allAvailableTables.addAll(availableTables3);
+            allAvailableTables.addAll(availableTables4);
+
+            // Sort tables by capacity (largest first) for optimal allocation
+            Collections.sort(allAvailableTables, (t1, t2) -> Integer.compare(t2.getSeats(), t1.getSeats()));
+
+            // Check if we have enough capacity for the requested guests
+            boolean hasEnoughCapacity = false;
+
+            if (requestedGuests <= 2 && !availableTables2.isEmpty()) {
+                // Small party - can use any available table
+                hasEnoughCapacity = true;
+            } else if (requestedGuests <= 3 && (!availableTables3.isEmpty() || !availableTables4.isEmpty())) {
+                // Medium party - need table for 3+ people
+                hasEnoughCapacity = true;
+            } else if (requestedGuests <= 4 && !availableTables4.isEmpty()) {
+                // Larger party - need table for 4 people
+                hasEnoughCapacity = true;
+            } else if (requestedGuests > 4) {
+                // Very large party - need to combine tables
+                int cumulativeCapacity = 0;
+                for (Tables table : allAvailableTables) {
+                    cumulativeCapacity += table.getSeats();
+                    if (cumulativeCapacity >= requestedGuests) {
+                        hasEnoughCapacity = true;
+                        break;
+                    }
+                }
+            }
+
+            if (hasEnoughCapacity) {
+                availableHours.add(currentTime.format(formatter));
+            }
+
+            // Move to the next time slot
+            start = start.plusMinutes(15);
+        }
 
 
-
+        return availableHours;
+    }
 
 }
+
+
+
+
+

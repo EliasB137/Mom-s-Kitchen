@@ -1,5 +1,6 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
+import il.cshaifasweng.OCSFMediatorExample.client.events.HoursEvent;
 import il.cshaifasweng.OCSFMediatorExample.entities.DTO.dishDTO;
 import il.cshaifasweng.OCSFMediatorExample.entities.DTO.*;
 import javafx.fxml.FXMLLoader;
@@ -87,6 +88,12 @@ public class SimpleClient extends AbstractClient {
 				System.out.println("Client received `restaurants` from server.");
 				List<restaurantDTO> restaurantsDTO = (List<restaurantDTO>)response.getPayload()[0];
 				EventBus.getDefault().post(restaurantsDTO);
+
+			} else if (message.equals("availableHours")) {
+				System.out.println("Client received `" + message + "` from server.");
+				List<String> Hours = (List<String>) response.getPayload()[0];
+				HoursEvent event = new HoursEvent(Hours);
+				EventBus.getDefault().post(event);
 			}
 		} else if (msg instanceof restaurantDTO) {
 			System.out.println("the message is restaurantDTO type");

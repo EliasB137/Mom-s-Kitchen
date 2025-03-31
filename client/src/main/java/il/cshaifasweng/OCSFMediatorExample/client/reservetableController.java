@@ -1,14 +1,11 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
-import il.cshaifasweng.OCSFMediatorExample.entities.DTO.MenuItemDTO;
+import il.cshaifasweng.OCSFMediatorExample.entities.DTO.responseDTO;
 import il.cshaifasweng.OCSFMediatorExample.entities.DTO.restaurantDTO;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.DatePicker;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
@@ -24,14 +21,18 @@ public class reservetableController {
 
     private restaurantDTO restaurant;
     private LocalDate selectedDate;
+    public static String time;
     @FXML
     private Button countinuebtn;
+
+    @FXML
+    private Label fieldsNotFilled;
 
     @FXML
     private DatePicker datePicker;
 
     @FXML
-    private ChoiceBox<String> insideOrOutside;
+    private ChoiceBox<String> insideOrOutsideChoiceBox;
 
     @FXML
     private TextField numberOfGuests;
@@ -40,14 +41,56 @@ public class reservetableController {
     private ChoiceBox<String> timechoicebox;
 
     @FXML
-    void countinuebtnpressed(ActionEvent event) {
+    void continueBtnPressed(ActionEvent event) {
+        if (datePicker.getValue() == null) {
+            System.out.println("Date is null");
+            fieldsNotFilled.setText("Fields not filled(Date)");
+            return;
+        }
+        if (timechoicebox.getValue() == null) {
+            System.out.println("Time is null");
+            fieldsNotFilled.setText("Fields not filled(Time)");
+            return;
+        }
+        if (insideOrOutsideChoiceBox.getValue() == null) {
+            System.out.println("Inside/Outside choice is null");
+            fieldsNotFilled.setText("Fields not filled(Inside/Outside)");
+            return;
+        }
+        if (numberOfGuests.getText().isEmpty()) {
+            System.out.println("Number of guests is empty");
+            fieldsNotFilled.setText("Fields not filled(number of guests)");
+            return;
+        }
+        fieldsNotFilled.setText("");
+        try {
+
+            // Your existing code to get the values
+            LocalDate date = datePicker.getValue();
+            time = timechoicebox.getValue();
+            String inOrOut = insideOrOutsideChoiceBox.getValue();
+            String numberOfGuest = numberOfGuests.getText();
+
+            // Create a payload array with the data
+            Object[] payload = {date, time, inOrOut, numberOfGuest, restaurant.getName()};
+
+            // Create the DTO with message type and payload
+            responseDTO requestData = new responseDTO("getHours", payload);
+
+            // Send the DTO object to the server
+            SimpleClient.getClient().sendToServer(requestData);
+
+            SimpleClient.getClient().navigateTo("reservetableconfirmView");
+        } catch (NumberFormatException | IOException e) {
+            System.out.println("Invalid number of guests");
+        }
     }
 
 
     @FXML
     void daypicked(ActionEvent event) {
         selectedDate = datePicker.getValue();
-        System.out.println("day picked: " + selectedDate.getDayOfWeek().toString().toLowerCase());
+        System.out.println("date picked: " + selectedDate.toString().toLowerCase());
         if (selectedDate != null) {
 
             String availableHours = restaurant.getOpeningHourForDay(selectedDate.getDayOfWeek().toString().toLowerCase());
@@ -79,7 +122,7 @@ public class reservetableController {
         List<String> insideOutside = new ArrayList<>();
         insideOutside.add("Inside");
         insideOutside.add("outside");
-        insideOrOutside.getItems().setAll(insideOutside);
+        insideOrOutsideChoiceBox.getItems().setAll(insideOutside);
 
         EventBus.getDefault().register(this);  // Register for EventBus updates
 
