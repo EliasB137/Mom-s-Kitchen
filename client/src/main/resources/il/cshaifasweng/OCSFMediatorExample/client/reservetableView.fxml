@@ -7,12 +7,13 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 
+<?import javafx.scene.control.ComboBox?>
 <AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.reservetableController">
     <children>
         <DatePicker fx:id="datePicker" layoutX="36.0" layoutY="42.0" promptText="Pick a date" />
-        <ChoiceBox fx:id="timechoicebox" layoutX="36.0" layoutY="76.0" prefWidth="150.0" />
+        <ComboBox fx:id="timeComboBox" layoutX="36.0" layoutY="76.0" prefWidth="150.0" />
         <TextField fx:id="numberOfGuests" layoutX="36.0" layoutY="116.0" promptText="number of guests" />
-        <ChoiceBox fx:id="insideOrOutsideChoiceBox" layoutX="36.0" layoutY="154.0" prefWidth="150.0" />
+        <ComboBox fx:id="insideOrOutsideComboBox" layoutX="36.0" layoutY="154.0" prefWidth="150.0" />
         <Button fx:id="countinuebtn" layoutX="274.0" layoutY="297.0" mnemonicParsing="false" onAction="#continueBtnPressed" text="coutinue" />
       <Label fx:id="fieldsNotFilled" layoutX="274.0" layoutY="238.0" />
     </children>

@@ -33,6 +33,9 @@ public class Reservation implements Serializable {
     @Column(name = "customer_name")
     private String customerName;
 
+    @Column(name = "customer_number")
+    private String customerNumber;
+
     @Column(name = "email")
     private String email;
 
@@ -45,7 +48,7 @@ public class Reservation implements Serializable {
     }
 
     public Reservation(List<Integer> table, String date, String time, String restaurant,
-                       String customerName, String email, String creditCard) {
+                       String customerName, String email, String creditCard,String customerNumber) {
         this.table = table;
         this.date = date;
         this.time = time;
@@ -53,6 +56,7 @@ public class Reservation implements Serializable {
         this.customerName = customerName;
         this.email = email;
         this.creditCard = creditCard;
+        this.customerNumber = customerNumber;
     }
 
     // Getters and Setters
@@ -116,6 +120,14 @@ public class Reservation implements Serializable {
 
     public void setCreditCard(String creditCard) {
         this.creditCard = creditCard;
+    }
+
+    public String getCustomerNumber() {
+        return customerNumber;
+    }
+
+    public void setCustomerNumber(String customerNumber) {
+        this.customerNumber = customerNumber;
     }
 
 

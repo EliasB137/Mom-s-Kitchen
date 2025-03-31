@@ -2,15 +2,12 @@ package il.cshaifasweng.OCSFMediatorExample.client;
 
 import il.cshaifasweng.OCSFMediatorExample.entities.DTO.responseDTO;
 import il.cshaifasweng.OCSFMediatorExample.entities.DTO.restaurantDTO;
-import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -19,9 +16,11 @@ import java.util.List;
 
 public class reservetableController {
 
-    private restaurantDTO restaurant;
-    private LocalDate selectedDate;
+    public static restaurantDTO restaurant;
     public static String time;
+    public static LocalDate date;
+    public static String inOrOut;
+    public static String numberOfGuest;
     @FXML
     private Button countinuebtn;
 
@@ -32,13 +31,13 @@ public class reservetableController {
     private DatePicker datePicker;
 
     @FXML
-    private ChoiceBox<String> insideOrOutsideChoiceBox;
+    private ComboBox<String> insideOrOutsideComboBox;
 
     @FXML
     private TextField numberOfGuests;
 
     @FXML
-    private ChoiceBox<String> timechoicebox;
+    private ComboBox<String> timeComboBox;
 
     @FXML
     void continueBtnPressed(ActionEvent event) {
@@ -47,12 +46,12 @@ public class reservetableController {
             fieldsNotFilled.setText("Fields not filled(Date)");
             return;
         }
-        if (timechoicebox.getValue() == null) {
+        if (timeComboBox.getValue() == null) {
             System.out.println("Time is null");
             fieldsNotFilled.setText("Fields not filled(Time)");
             return;
         }
-        if (insideOrOutsideChoiceBox.getValue() == null) {
+        if (insideOrOutsideComboBox.getValue() == null) {
             System.out.println("Inside/Outside choice is null");
             fieldsNotFilled.setText("Fields not filled(Inside/Outside)");
             return;
@@ -62,14 +61,18 @@ public class reservetableController {
             fieldsNotFilled.setText("Fields not filled(number of guests)");
             return;
         }
+        if (datePicker.getValue().isBefore(LocalDate.now())) {
+            fieldsNotFilled.setText("Please select a future date for reservation.");
+            return;
+        }
         fieldsNotFilled.setText("");
         try {
 
             // Your existing code to get the values
-            LocalDate date = datePicker.getValue();
-            time = timechoicebox.getValue();
-            String inOrOut = insideOrOutsideChoiceBox.getValue();
-            String numberOfGuest = numberOfGuests.getText();
+            date = datePicker.getValue();
+            time = timeComboBox.getValue();
+            inOrOut = insideOrOutsideComboBox.getValue();
+            numberOfGuest = numberOfGuests.getText();
 
             // Create a payload array with the data
             Object[] payload = {date, time, inOrOut, numberOfGuest, restaurant.getName()};
@@ -89,16 +92,16 @@ public class reservetableController {
 
     @FXML
     void daypicked(ActionEvent event) {
-        selectedDate = datePicker.getValue();
-        System.out.println("date picked: " + selectedDate.toString().toLowerCase());
-        if (selectedDate != null) {
+        date = datePicker.getValue();
+        System.out.println("date picked: " + date.toString().toLowerCase());
+        if (date != null) {
 
-            String availableHours = restaurant.getOpeningHourForDay(selectedDate.getDayOfWeek().toString().toLowerCase());
+            String availableHours = restaurant.getOpeningHourForDay(date.getDayOfWeek().toString().toLowerCase());
             System.out.println(availableHours);
             if(availableHours.equals("closed")) {
                 List<String> timeSlots = new ArrayList<>();
                 timeSlots.add(availableHours);
-                timechoicebox.getItems().setAll(timeSlots);
+                timeComboBox.getItems().setAll(timeSlots);
             }else{
                 String[] parts = availableHours.split("-");
                 LocalTime startTime = LocalTime.parse(parts[0] + ":00"); // Convert "8:00" to "08:00:00"
@@ -111,8 +114,7 @@ public class reservetableController {
                     timeSlots.add(currentTime.toString()); // Converts to "08:00", "08:15", etc.
                     currentTime = currentTime.plusMinutes(15);
                 }
-                //timechoicebox.setItems(FXCollections.observableArrayList(timeSlots));
-                timechoicebox.getItems().setAll(timeSlots);
+                timeComboBox.getItems().setAll(timeSlots);
             }
         }
     }
@@ -122,7 +124,7 @@ public class reservetableController {
         List<String> insideOutside = new ArrayList<>();
         insideOutside.add("Inside");
         insideOutside.add("outside");
-        insideOrOutsideChoiceBox.getItems().setAll(insideOutside);
+        insideOrOutsideComboBox.getItems().setAll(insideOutside);
 
         EventBus.getDefault().register(this);  // Register for EventBus updates
 

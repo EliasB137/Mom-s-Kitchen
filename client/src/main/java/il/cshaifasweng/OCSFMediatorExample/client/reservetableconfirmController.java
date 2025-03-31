@@ -1,6 +1,7 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
 import il.cshaifasweng.OCSFMediatorExample.client.events.HoursEvent;
+import il.cshaifasweng.OCSFMediatorExample.entities.DTO.responseDTO;
 import il.cshaifasweng.OCSFMediatorExample.entities.DTO.restaurantDTO;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -9,6 +10,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
@@ -21,6 +23,15 @@ import java.util.List;
 public class reservetableconfirmController {
 
     @FXML
+    private TextField CCTextField;
+
+    @FXML
+    private TextField NameTextField;
+
+    @FXML
+    private TextField NumberTextField;
+
+    @FXML
     private ComboBox<String> comboBox_id;
 
     @FXML
@@ -28,6 +39,9 @@ public class reservetableconfirmController {
 
     @FXML
     private Button confrim_Button;
+
+    @FXML
+    private TextField emailTextField;
 
     @FXML
     private Label sentence1;
@@ -44,7 +58,30 @@ public class reservetableconfirmController {
 
     @FXML
     void confirmPressed(ActionEvent event) {
+        // Check if any text field is empty
+        if (NameTextField.getText().trim().isEmpty() ||
+                NumberTextField.getText().trim().isEmpty() ||
+                CCTextField.getText().trim().isEmpty() ||
+                emailTextField.getText().trim().isEmpty() ||
+                comboBox_id.getValue().isEmpty()) {
 
+            confirm_Label.setText("Please fill all fields.");
+            return;
+        }
+
+        Object[] payload = {NameTextField.getText().trim(), NumberTextField.getText(), CCTextField.getText().trim()
+                , emailTextField.getText().trim(), comboBox_id.getValue(),reservetableController.date
+                , reservetableController.numberOfGuest, reservetableController.restaurant.getName()};
+
+        // Create the DTO with message type and payload
+        responseDTO requestData = new responseDTO("confirmReservation", payload);
+
+        // Send the DTO object to the server
+        try {
+            SimpleClient.getClient().sendToServer(requestData);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Subscribe
