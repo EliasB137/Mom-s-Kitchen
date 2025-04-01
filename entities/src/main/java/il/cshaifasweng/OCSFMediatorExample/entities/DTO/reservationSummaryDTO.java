@@ -1,60 +1,31 @@
-package il.cshaifasweng.OCSFMediatorExample.server.SavingInSql;
+package il.cshaifasweng.OCSFMediatorExample.entities.DTO;
 
-import javax.persistence.*;
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.List;
 
-@Entity
-@Table(name = "reservations")
-public class Reservation implements Serializable {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "reservation_id")
+public class reservationSummaryDTO implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     private int id;
-
-    @ElementCollection
-    @CollectionTable(
-            name = "reservations_tables",
-            joinColumns = @JoinColumn(name = "reservation_id")
-    )
-    @Column(name = "tables")
     private List<Integer> table;
-
-    @Column(name = "date")
     private String date;
-
-    @Column(name = "time")
     private String time;
-
-    @Column(name = "restaurant_name")
     private String restaurant;
-
-    @Column(name = "customer_name")
     private String customerName;
-
-    @Column(name = "customer_number")
     private String customerNumber;
-
-    @Column(name = "customer_id")
     private String customerId;
-
-    @Column(name = "email")
     private String email;
-
-    @Column(name = "credit_card")
     private String creditCard;
-
-    @Column(name = "number_of_guests")
     private int numberOfGuests;
 
-
-    // Constructors
-    public Reservation() {
+    // Default constructor
+    public reservationSummaryDTO() {
     }
 
-    public Reservation(List<Integer> table, String date, String time, String restaurant,
-                       String customerName, String email, String creditCard,String customerNumber,int numberOfGuests,String customerId) {
+    // Parameterized constructor
+    public reservationSummaryDTO(int id,List<Integer> table, String date, String time, String restaurant,
+                          String customerName, String email, String creditCard, String customerNumber, int numberOfGuests, String customerId) {
+        this.id = id;
         this.table = table;
         this.date = date;
         this.time = time;
@@ -68,11 +39,13 @@ public class Reservation implements Serializable {
     }
 
     // Getters and Setters
-
     public int getId() {
         return id;
     }
 
+    public void setId(int id) {
+        this.id = id;
+    }
 
     public List<Integer> getTable() {
         return table;
@@ -154,10 +127,9 @@ public class Reservation implements Serializable {
         this.customerId = customerId;
     }
 
-
     @Override
     public String toString() {
-        return "Reservation{" +
+        return "ReservationDTO{" +
                 "id=" + id +
                 ", tables=" + table +
                 ", date='" + date + '\'' +

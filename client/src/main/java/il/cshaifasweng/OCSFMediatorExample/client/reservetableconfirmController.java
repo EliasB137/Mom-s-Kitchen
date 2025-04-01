@@ -32,6 +32,9 @@ public class reservetableconfirmController {
     private TextField NumberTextField;
 
     @FXML
+    private TextField IDTextField;
+
+    @FXML
     private ComboBox<String> comboBox_id;
 
     @FXML
@@ -63,7 +66,8 @@ public class reservetableconfirmController {
                 NumberTextField.getText().trim().isEmpty() ||
                 CCTextField.getText().trim().isEmpty() ||
                 emailTextField.getText().trim().isEmpty() ||
-                comboBox_id.getValue().isEmpty()) {
+                comboBox_id.getValue().isEmpty()||
+                IDTextField.getText().trim().isEmpty()) {
 
             confirm_Label.setText("Please fill all fields.");
             return;
@@ -71,7 +75,7 @@ public class reservetableconfirmController {
 
         Object[] payload = {NameTextField.getText().trim(), NumberTextField.getText().trim(), CCTextField.getText().trim()
                 , emailTextField.getText().trim(), comboBox_id.getValue(),reservetableController.date
-                , reservetableController.numberOfGuest, reservetableController.restaurant.getName(),reservetableController.inOrOut};
+                , reservetableController.numberOfGuest, reservetableController.restaurant.getName(),reservetableController.inOrOut,IDTextField.getText().trim()};
 
         // Create the DTO with message type and payload
         responseDTO requestData = new responseDTO("confirmReservation", payload);
@@ -115,7 +119,7 @@ public class reservetableconfirmController {
             });
         }else if(!availableTimes.isEmpty()) {
             Platform.runLater(() -> {
-                sentence1.setText("there is no space in the time you should, here are some different options");
+                sentence1.setText("there is no space in the time you chose, here are some different options");
                 sentence2.setText("Please pick one of them");
                 comboBox_id.setItems(FXCollections.observableArrayList(availableTimes));
             });

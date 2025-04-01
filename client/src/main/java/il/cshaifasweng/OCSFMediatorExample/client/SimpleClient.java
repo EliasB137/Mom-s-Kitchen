@@ -92,6 +92,13 @@ public class SimpleClient extends AbstractClient {
 					EventBus.getDefault().post(orderSummaries);
 					break;
 
+				case "CustomerReservationsResponse":
+					System.out.println("test");
+					List<reservationSummaryDTO> summaries = (List<reservationSummaryDTO>) response.getPayload()[0];
+					System.out.println(summaries.size());
+					EventBus.getDefault().post(summaries);
+					break;
+
                 case "availableHours":
                     System.out.println("Client received `" + message + "` from server.");
                     List<String> Hours = (List<String>) response.getPayload()[0];
@@ -99,7 +106,7 @@ public class SimpleClient extends AbstractClient {
                     EventBus.getDefault().post(event);
                     break;
 
-               case "OrderCancellationSuccess":
+               	case "OrderCancellationSuccess":
 					System.out.println("test1");
 					System.out.println("Payload length: " + response.getPayload().length);
 					System.out.println("Payload first element class: " + response.getPayload()[0].getClass().getName());
@@ -109,6 +116,11 @@ public class SimpleClient extends AbstractClient {
 					EventBus.getDefault().post(new CancellationResultEvent(cancelMsg));
 					System.out.println("test3");
 					break;
+				case "ReservationCancellationSuccess":
+					int fine = (int) response.getPayload()[0];
+					EventBus.getDefault().post(new reservationCancellationResultEvent(fine));
+
+
 				case "reservationResult":
 					reservationResultEvent result = new reservationResultEvent();
 					if(response.getPayload().length == 0)

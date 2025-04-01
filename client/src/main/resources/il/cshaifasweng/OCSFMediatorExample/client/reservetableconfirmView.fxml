@@ -7,7 +7,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.reservetableconfirmController">
+<AnchorPane prefHeight="452.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.reservetableconfirmController">
    <children>
       <Label fx:id="sentence1" layoutX="38.0" layoutY="49.0" prefHeight="20.0" prefWidth="527.0" text="These are the available times that suit your selection." wrapText="true">
          <font>
@@ -20,16 +20,18 @@
       <Label layoutX="50.0" layoutY="150.0" text="Name:" />
       <TextField fx:id="NameTextField" layoutX="150.0" layoutY="146.0" prefWidth="250.0" />
 
-      <Label layoutX="50.0" layoutY="190.0" text="Number:" />
-      <TextField fx:id="NumberTextField" layoutX="150.0" layoutY="186.0" prefWidth="250.0" />
+      <Label layoutX="49.0" layoutY="203.0" text="Number:" />
+      <TextField fx:id="NumberTextField" layoutX="150.0" layoutY="199.0" prefWidth="250.0" />
 
-      <Label layoutX="50.0" layoutY="230.0" text="Email:" />
-      <TextField fx:id="emailTextField" layoutX="150.0" layoutY="226.0" prefWidth="250.0" />
+      <Label layoutX="49.0" layoutY="283.0" text="Email:" />
+      <TextField fx:id="emailTextField" layoutX="150.0" layoutY="279.0" prefWidth="250.0" />
 
-      <Label layoutX="50.0" layoutY="270.0" text="Credit Card:" />
-      <TextField fx:id="CCTextField" layoutX="150.0" layoutY="266.0" prefWidth="250.0" />
+      <Label layoutX="49.0" layoutY="325.0" text="Credit Card:" />
+      <TextField fx:id="CCTextField" layoutX="150.0" layoutY="321.0" prefWidth="250.0" />
 
-      <Button fx:id="confrim_Button" layoutX="250.0" layoutY="340.0" mnemonicParsing="false" onAction="#confirmPressed" prefWidth="100.0" text="Confirm" />
-      <Label fx:id="confirm_Label" layoutX="190.0" layoutY="306.0" text="Label" />
+      <Button fx:id="confrim_Button" layoutX="250.0" layoutY="386.0" mnemonicParsing="false" onAction="#confirmPressed" prefWidth="100.0" text="Confirm" />
+      <Label fx:id="confirm_Label" layoutX="190.0" layoutY="356.0" text="Label" />
+      <Label layoutX="51.0" layoutY="247.0" text="ID:" />
+      <TextField fx:id="IDTextField" layoutX="150.0" layoutY="242.0" prefHeight="26.0" prefWidth="250.0" />
    </children>
 </AnchorPane>

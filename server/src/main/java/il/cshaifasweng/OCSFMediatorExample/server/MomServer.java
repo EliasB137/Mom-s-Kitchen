@@ -180,7 +180,7 @@ public class MomServer extends AbstractServer {
                 query.setParameter("id", 2);
                 Tables tableAddReservationTo = query.uniqueResult();
 
-                Reservation reservation = new Reservation(Arrays.asList(2),"2025-04-04","10:00","Golden Gate Bites","tony","tonysabbah@gmail.com","123412341234,123","1234567890", 3);
+                Reservation reservation = new Reservation(Arrays.asList(2),"2025-04-04","10:00","Golden Gate Bites","tony","tonysabbah@gmail.com","123412341234,123","1234567890", 3,"213991516");
                 session.save(reservation);
                 session.flush();
 
@@ -288,10 +288,11 @@ public class MomServer extends AbstractServer {
                 String numberOfGuest = payload[6].toString();
                 String restaurantName = payload[7].toString();
                 String inOrOut = payload[8].toString();
+                String customerId = payload[9].toString();
 
                 Session session = sessionFactory.openSession();
 
-                List<Integer> result = confirmReservations(name,number,creditCard,email,time,date,numberOfGuest,restaurantName,inOrOut);
+                List<Integer> result = confirmReservations(name,number,creditCard,email,time,date,numberOfGuest,restaurantName,inOrOut,customerId);
 
                 if (!result.isEmpty()) {
                     responseDTO response = new responseDTO("reservationResult",new Object[]{result});
@@ -556,6 +557,36 @@ public class MomServer extends AbstractServer {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+            } else if (msgString.startsWith("getReservationsByCustomerId:")) {
+                String customerId = msgString.replace("getReservationsByCustomerId:", "").trim();
+
+                try (Session session = getSessionFactory().openSession()) {
+                    session.beginTransaction();
+
+                    List<Reservation> reservations = session.createQuery("FROM Reservation WHERE customerId = :id", Reservation.class)
+                            .setParameter("id", customerId)
+                            .getResultList();
+                    List<reservationSummaryDTO> summaries = reservations.stream().map(reservation -> new reservationSummaryDTO(
+                            reservation.getId(),
+                            new ArrayList<>(reservation.getTable()),
+                            reservation.getDate(),
+                            reservation.getTime(),
+                            reservation.getRestaurant(),
+                            reservation.getCustomerName(),
+                            reservation.getEmail(),
+                            reservation.getCreditCard(),
+                            reservation.getCustomerNumber(),
+                            reservation.getNumberOfGuests(),
+                            reservation.getCustomerId()
+                    )).collect(Collectors.toList());
+                    responseDTO response = new responseDTO("CustomerReservationsResponse", new Object[]{summaries});
+                    client.sendToClient(response);
+
+                    session.getTransaction().commit();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
             } else if (msg instanceof OrderCancellationDTO) {
                 OrderCancellationDTO cancelRequest = (OrderCancellationDTO) msg;
 
@@ -596,6 +627,49 @@ public class MomServer extends AbstractServer {
                         ioException.printStackTrace();
                     }
                 }
+            } else if (msg instanceof reservationCancellationDTO) {
+                reservationCancellationDTO cancelRequest = (reservationCancellationDTO) msg;
+
+                try (Session session = getSessionFactory().openSession()) {
+                    session.beginTransaction();
+
+                    Reservation reservation = session.get(Reservation.class, cancelRequest.getOrderId());
+
+                    if (reservation == null || !reservation.getCustomerId().equals(cancelRequest.getCustomerId())) {
+                        client.sendToClient(new responseDTO("OrderCancellationFailure", new Object[]{"Order not found or customer ID mismatch."}));
+                        return;
+                    }
+
+                    // Calculate refund based on delivery time
+                    LocalDateTime now = LocalDateTime.now();
+                    String date = reservation.getDate();
+                    String time = reservation.getTime();
+
+                    LocalDateTime reservationDateTime = LocalDateTime.parse(
+                            date + "T" + time + ":00"  // Format: "2025-04-04T10:00:00"
+                    );
+                    long hoursDifference = ChronoUnit.HOURS.between(now, reservationDateTime);
+                    int fine;
+
+                    if(hoursDifference  >= 1)
+                        fine = 0;
+                    else
+                        fine = reservation.getNumberOfGuests()*10;
+
+                    // Delete the order — cascading should handle orderItems (if mapped correctly)
+                    session.delete(reservation);
+                    session.getTransaction().commit();
+
+                    client.sendToClient(new responseDTO("ReservationCancellationSuccess", new Object[]{fine}));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    try {
+                        client.sendToClient(new responseDTO("ReservationCancellationFailure", new Object[]{"Server error during deletion."}));
+                    } catch (IOException ioException) {
+                        ioException.printStackTrace();
+                    }
+                }
+
             }
         }
     }
@@ -794,7 +868,7 @@ public class MomServer extends AbstractServer {
     }
 
     public static List<Integer> confirmReservations(String name,String number,String creditCard,String email,String time,
-                                                    LocalDate date, String numberOfGuest,String restaurantName,String inOrOut){
+                                                    LocalDate date, String numberOfGuest,String restaurantName,String inOrOut, String customerId){
         SessionFactory sessionFactory = getSessionFactory();
         session = sessionFactory.openSession();
         session.beginTransaction();
@@ -906,7 +980,7 @@ public class MomServer extends AbstractServer {
         session.beginTransaction();
 
         Reservation newReservation = new Reservation(selectedTableIds, date.toString(), time, restaurantName, name, email,
-                                                    creditCard,number,Integer.parseInt(numberOfGuest));
+                                                    creditCard,number,Integer.parseInt(numberOfGuest),customerId);
 
         for (int table_id : selectedTableIds) {
             Tables table = session.get(Tables.class, table_id);

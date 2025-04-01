@@ -87,23 +87,23 @@ public class viewOrdersController {
             }
         });
     }
-//Platform.runLater(...) ensures the UI update runs on the correct JavaFX thread.
-@Subscribe
-public void handleCancellationResult(CancellationResultEvent event) {
-    Platform.runLater(() -> {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Order Cancellation");
-        alert.setHeaderText(null);
-        alert.setContentText("The refund amount is : " + event.getMessage());
-        alert.showAndWait(); // Show the popup and wait for user acknowledgment
-    });
+    //Platform.runLater(...) ensures the UI update runs on the correct JavaFX thread.
+    @Subscribe
+    public void handleCancellationResult(CancellationResultEvent event) {
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Order Cancellation");
+            alert.setHeaderText(null);
+            alert.setContentText("The refund amount is : " + event.getMessage());
+            alert.showAndWait(); // Show the popup and wait for user acknowledgment
+        });
 
-    try {
-        SimpleClient.getClient().sendToServer("getOrdersByCustomerId:" + idField.getText());
-    } catch (IOException e) {
-        throw new RuntimeException(e);
+        try {
+            SimpleClient.getClient().sendToServer("getOrdersByCustomerId:" + idField.getText());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
-}
 
 
     @Subscribe
