@@ -1,6 +1,6 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
-import il.cshaifasweng.OCSFMediatorExample.client.events.HoursEvent;
+import il.cshaifasweng.OCSFMediatorExample.client.events.*;
 import il.cshaifasweng.OCSFMediatorExample.entities.DTO.Events.CancellationResultEvent;
 import il.cshaifasweng.OCSFMediatorExample.entities.DTO.dishDTO;
 import il.cshaifasweng.OCSFMediatorExample.entities.DTO.*;
@@ -108,6 +108,14 @@ public class SimpleClient extends AbstractClient {
 					System.out.println("test");
 					EventBus.getDefault().post(new CancellationResultEvent(cancelMsg));
 					System.out.println("test3");
+					break;
+				case "reservationResult":
+					reservationResultEvent result = new reservationResultEvent();
+					if(response.getPayload().length == 0)
+						result.setMessage("failed");
+					else
+						result.setMessage("success");
+					EventBus.getDefault().post(result);
 					break;
 
 				default:

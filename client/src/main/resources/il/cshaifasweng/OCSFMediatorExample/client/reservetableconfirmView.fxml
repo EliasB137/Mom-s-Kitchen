@@ -30,6 +30,6 @@
       <TextField fx:id="CCTextField" layoutX="150.0" layoutY="266.0" prefWidth="250.0" />
 
       <Button fx:id="confrim_Button" layoutX="250.0" layoutY="340.0" mnemonicParsing="false" onAction="#confirmPressed" prefWidth="100.0" text="Confirm" />
-      <Label fx:id="confirm_Label" layoutX="286.0" layoutY="310.0" text="Label" />
+      <Label fx:id="confirm_Label" layoutX="190.0" layoutY="306.0" text="Label" />
    </children>
 </AnchorPane>

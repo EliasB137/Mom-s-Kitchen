@@ -1,6 +1,6 @@
 package il.cshaifasweng.OCSFMediatorExample.client;
 
-import il.cshaifasweng.OCSFMediatorExample.client.events.HoursEvent;
+import il.cshaifasweng.OCSFMediatorExample.client.events.*;
 import il.cshaifasweng.OCSFMediatorExample.entities.DTO.responseDTO;
 import il.cshaifasweng.OCSFMediatorExample.entities.DTO.restaurantDTO;
 import javafx.application.Platform;
@@ -69,9 +69,9 @@ public class reservetableconfirmController {
             return;
         }
 
-        Object[] payload = {NameTextField.getText().trim(), NumberTextField.getText(), CCTextField.getText().trim()
+        Object[] payload = {NameTextField.getText().trim(), NumberTextField.getText().trim(), CCTextField.getText().trim()
                 , emailTextField.getText().trim(), comboBox_id.getValue(),reservetableController.date
-                , reservetableController.numberOfGuest, reservetableController.restaurant.getName()};
+                , reservetableController.numberOfGuest, reservetableController.restaurant.getName(),reservetableController.inOrOut};
 
         // Create the DTO with message type and payload
         responseDTO requestData = new responseDTO("confirmReservation", payload);
@@ -127,4 +127,13 @@ public class reservetableconfirmController {
 
     }
 
+    @Subscribe
+    public void confirmation(reservationResultEvent event) {
+        Platform.runLater(() -> {
+            if(event.getMessage().equals("failed"))
+                confirm_Label.setText("The reservation failed :( Please try again");
+            else
+                confirm_Label.setText("The reservation is saved :) Thank you!");
+        });
+    }
 }

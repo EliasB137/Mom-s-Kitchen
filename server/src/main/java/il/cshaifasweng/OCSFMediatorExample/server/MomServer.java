@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 
+import net.bytebuddy.asm.Advice;
 import org.hibernate.*;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
@@ -179,7 +180,7 @@ public class MomServer extends AbstractServer {
                 query.setParameter("id", 2);
                 Tables tableAddReservationTo = query.uniqueResult();
 
-                Reservation reservation = new Reservation(Arrays.asList(2),"2025-04-04","10:00","Golden Gate Bites","tony","tonysabbah@gmail.com","123412341234,123","1234567890");
+                Reservation reservation = new Reservation(Arrays.asList(2),"2025-04-04","10:00","Golden Gate Bites","tony","tonysabbah@gmail.com","123412341234,123","1234567890", 3);
                 session.save(reservation);
                 session.flush();
 
@@ -218,7 +219,7 @@ public class MomServer extends AbstractServer {
 
             if(command.equals("getHours"))
             {
-                System.out.println("[DEBUG] Command availableHours ");
+                System.out.println("[DEBUG] Command getHours ");
 
                 LocalDate date = (LocalDate) payload[0];
                 String time = payload[1].toString();
@@ -275,6 +276,40 @@ public class MomServer extends AbstractServer {
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
+            }else if(command.equals("confirmReservation")) {
+                System.out.println("[DEBUG] Command confirmReservation ");
+
+                String name = payload[0].toString();
+                String number = payload[1].toString();
+                String creditCard = payload[2].toString();
+                String email = payload[3].toString();
+                String time = payload[4].toString();
+                LocalDate date = (LocalDate) payload[5];
+                String numberOfGuest = payload[6].toString();
+                String restaurantName = payload[7].toString();
+                String inOrOut = payload[8].toString();
+
+                Session session = sessionFactory.openSession();
+
+                List<Integer> result = confirmReservations(name,number,creditCard,email,time,date,numberOfGuest,restaurantName,inOrOut);
+
+                if (!result.isEmpty()) {
+                    responseDTO response = new responseDTO("reservationResult",new Object[]{result});
+                    try {
+                        client.sendToClient(response);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }else {
+                    responseDTO response = new responseDTO("reservationResult",new Object[]{});
+                    try {
+                        client.sendToClient(response);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+
+
             }
         }else {
             String msgString = msg.toString();
@@ -756,6 +791,134 @@ public class MomServer extends AbstractServer {
 
 
         return availableHours;
+    }
+
+    public static List<Integer> confirmReservations(String name,String number,String creditCard,String email,String time,
+                                                    LocalDate date, String numberOfGuest,String restaurantName,String inOrOut){
+        SessionFactory sessionFactory = getSessionFactory();
+        session = sessionFactory.openSession();
+        session.beginTransaction();
+        String hql1 = "FROM Reservation r WHERE r.restaurant = :givenRestaurantName AND r.date = :givenDate";
+
+        List<Reservation> reservations = null;
+        try {
+            Query<Reservation> query1 = session.createQuery(hql1, Reservation.class);
+            query1.setParameter("givenRestaurantName", restaurantName);
+            query1.setParameter("givenDate", date.toString());
+            reservations = query1.list();
+            System.out.println("[DEBUG] Got " + reservations.size() + " reservations " + date.toString()+ " " + restaurantName);
+        } catch (Exception e) {
+            System.out.println("[DEBUG] Query error: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        for (Reservation reservation : reservations) {
+            Hibernate.initialize(reservation.getTable());
+        }
+
+        String hql2 = "FROM Tables r WHERE r.restaurant = :givenRestaurantName AND r.tableIn = :isInTable";
+
+        Query query2 = session.createQuery(hql2);
+        query2.setParameter("givenRestaurantName", restaurantName);
+        if(inOrOut.equals("Inside"))
+            query2.setParameter("isInTable", true);
+        else
+            query2.setParameter("isInTable", false);
+        List<Tables> tables = query2.list();
+        for (Tables table : tables) {
+            Hibernate.initialize(table.getReservations());
+        }
+        session.getTransaction().commit();
+        session.close();
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+        LocalTime currentTime = LocalTime.parse(time, formatter);
+
+        int requestedGuests = Integer.parseInt(numberOfGuest);
+        List<Tables> availableTables2 = new ArrayList<>();
+        List<Tables> availableTables3 = new ArrayList<>();
+        List<Tables> availableTables4 = new ArrayList<>();
+
+        for (Tables table : tables) {
+            boolean isAvailable = true;
+
+            // Check if this table is already reserved at this time or an hour before
+            for (Reservation reservation : reservations) {
+                LocalTime reservationTime = LocalTime.parse(reservation.getTime(), formatter);
+                List<Integer> reservedTableIds = reservation.getTable();
+                if (reservedTableIds.contains(table.getId())) {
+                    // Check if the reservation overlaps with current time
+                    // (reservation time is within 1 hour before or after current time)
+                    if (reservationTime.equals(currentTime) ||
+                            (reservationTime.isBefore(currentTime) &&
+                                    reservationTime.plusHours(1).isAfter(currentTime)) ||
+                            (reservationTime.isAfter(currentTime) &&
+                                    reservationTime.isBefore(currentTime.plusHours(1)))) {
+                        isAvailable = false;
+                        break;
+                    }
+                }
+            }
+            // If the table is available, add it to the appropriate list
+            if (isAvailable) {
+                if (table.getSeats() == 2) {
+                    availableTables2.add(table);
+                } else if (table.getSeats() == 3) {
+                    availableTables3.add(table);
+                } else if (table.getSeats() == 4) {
+                    availableTables4.add(table);
+                }
+            }
+        }
+
+        List<Integer> selectedTableIds = new ArrayList<>();
+        int remainingGuests = requestedGuests;
+
+        // First, allocate 4-seat tables as much as possible
+        // But stop if remaining guests are 2 or 3 (to give them appropriate sized tables)
+        for (Tables table : availableTables4) {
+            if (    (remainingGuests <= 0)||
+                    (remainingGuests == 3 && !availableTables3.isEmpty()) ||
+                    (remainingGuests <= 2 && !availableTables3.isEmpty() && !availableTables2.isEmpty())) break;
+            selectedTableIds.add(table.getId());
+            remainingGuests -= 4;
+        }
+        if (remainingGuests > 0) {
+            for (Tables table : availableTables3) {
+                if ((remainingGuests <= 0 ) || (remainingGuests <= 2 && !availableTables2.isEmpty())) break;
+                selectedTableIds.add(table.getId());
+                remainingGuests -= 3;
+            }
+        }
+        if (remainingGuests > 0) {
+            for (Tables table : availableTables2) {
+                if (remainingGuests <= 0) break;
+                selectedTableIds.add(table.getId());
+                remainingGuests -= 2;
+            }
+        }
+        if (remainingGuests > 0) {
+            // Not enough tables available
+            return new ArrayList<>(); // Return empty list to indicate failure
+        }
+        sessionFactory = getSessionFactory();
+        session = sessionFactory.openSession();
+        session.beginTransaction();
+
+        Reservation newReservation = new Reservation(selectedTableIds, date.toString(), time, restaurantName, name, email,
+                                                    creditCard,number,Integer.parseInt(numberOfGuest));
+
+        for (int table_id : selectedTableIds) {
+            Tables table = session.get(Tables.class, table_id);
+            table.addReservation(newReservation.getId());
+            session.update(table);
+        }
+
+        session.save(newReservation);
+        session.getTransaction().commit();
+        session.close();
+
+        return selectedTableIds;
     }
 
 }
