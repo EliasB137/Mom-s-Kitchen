@@ -17,6 +17,9 @@ public class User implements Serializable {
     @Column(name = "password", nullable = false)
     private String password;
 
+    @Column(name = "isloggedin")
+    private Boolean isLoggedin;
+
     @Column(name = "role")
     private String role;  // Could be "CUSTOMER", "MANAGER", "ADMIN", etc.
 //
@@ -32,6 +35,7 @@ public class User implements Serializable {
         this.username = username;
         this.password = password;
         this.role = role;
+        this.isLoggedin = false;
     }
 
 //    // Additional constructor with restaurant
@@ -52,6 +56,10 @@ public class User implements Serializable {
 
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
+
+    public Boolean getLoggedin() { return isLoggedin; }
+    public void setLoggedin(Boolean loggedin) { this.isLoggedin = loggedin; }
+
 //
 //    public Restaurant getRestaurant() { return restaurant; }
 //    public void setRestaurant(Restaurant restaurant) { this.restaurant = restaurant; }

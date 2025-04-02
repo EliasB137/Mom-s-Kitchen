@@ -153,6 +153,20 @@ public class MomServer extends AbstractServer {
                 restaurantAddTableTo.addTable(table.getId());
                 session.update(restaurantAddTableTo);
 
+
+                User user = new User("manager","manager","manager");
+                session.save(user);
+                session.flush();
+                user = new User("worker","worker","worker");
+                session.save(user);
+                session.flush();
+                user = new User("dietitian","dietitian","dietitian");
+                session.save(user);
+                session.flush();
+                user = new User("customer care","customer care","customer care");
+                session.save(user);
+                session.flush();
+
                 System.out.println("Linked " + table.getId() + " to " + restaurantAddTableTo.getName());
             }
             session.getTransaction().commit();
@@ -343,8 +357,42 @@ public class MomServer extends AbstractServer {
             } else if (command.equals("logInRequest")) {
                 String username = payload[0].toString();
                 String password = payload[1].toString();
+
+                Session session = sessionFactory.openSession();
+                session.beginTransaction();
+
+                String hql = "FROM User r WHERE r.username = :givenUsername AND r.password = :givenPassword";
+
+                Query query = session.createQuery(hql);
+                query.setParameter("givenUsername", username);
+                query.setParameter("givenPassword", password);
+                User user = (User) query.uniqueResult();
+
+                int userID =0;
+                String userRole = "0";
+
+                String reply ;
+                if(user == null) {
+                    reply = "notFound";
+                }else if(user.getLoggedin()){
+                    reply = "alreadyLoggedin";
+                }else{
+                    reply = "loginSuccessful";
+                    userID = user.getId();
+                    userRole = user.getRole();
+                    user.setLoggedin(true);
+                    session.update(user);
+                }
+                responseDTO response = new responseDTO("loginResult",new Object[]{reply,userID,userRole});
+                session.getTransaction().commit();
+                session.close();
+                try {
+                    client.sendToClient(response);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
-        }else {
+        } else if(msg instanceof String) {
             String msgString = msg.toString();
             if (msgString.equals("getMenu")) {
                 System.out.println("Server received 'getMenu' request.");
@@ -506,63 +554,7 @@ public class MomServer extends AbstractServer {
                     } catch (IOException e) {
                     }
                 }
-
-
-            } else if (msg instanceof OrderSubmissionDTO) {
-                OrderSubmissionDTO orderDTO = (OrderSubmissionDTO) msg;
-                try {
-                    Session session = getSessionFactory().openSession();
-                    session.beginTransaction();
-
-                    // 2. Calculate total price
-                    double total = orderDTO.getCart().stream()
-                            .mapToDouble(item -> {
-                                try {
-                                    return Double.parseDouble(item.getDish().getPrice()) * item.getQuantity();
-                                } catch (Exception e) {
-                                    return 0.0;
-                                }
-                            }).sum();
-
-                    // 3. Create and save the Order
-                    Order order = new Order(
-                            total,
-                            orderDTO.getAddress(),
-                            orderDTO.getName(),
-                            orderDTO.getId(),
-                            orderDTO.getCreditCard(),
-                            orderDTO.getDeliveryTime(),
-                            new Date()
-                    );
-                    session.save(order);
-
-                    // 4. Add OrderItems
-                    for (CartItem item : orderDTO.getCart()) {
-                        // Fetch the actual Dish from DB by ID
-                        Dish dish = session.get(Dish.class, item.getDish().getId());
-
-                        if (dish != null) {
-                            String prefs = String.join(", ", item.getSelectedPreferences());
-                            OrderItem orderItem = new OrderItem(order, dish, item.getQuantity(), prefs);
-                            session.save(orderItem);
-                        } else {
-                            System.err.println("[WARNING] Dish not found for ID: " + item.getDish().getId());
-                        }
-                    }
-
-                    session.getTransaction().commit();
-                    session.close();
-
-                    client.sendToClient(new responseDTO("OrderSuccess", new Object[]{}));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    try {
-                        client.sendToClient(new responseDTO("OrderFailure", new Object[]{}));
-                    } catch (IOException ioException) {
-                        ioException.printStackTrace();
-                    }
-                }
-            } else if (msgString.startsWith("getOrdersByCustomerId:")) {
+            }else if (msgString.startsWith("getOrdersByCustomerId:")) {
                 String customerId = msgString.replace("getOrdersByCustomerId:", "").trim();
 
                 try (Session session = getSessionFactory().openSession()) {
@@ -618,8 +610,62 @@ public class MomServer extends AbstractServer {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+            }
+        } else if (msg instanceof OrderSubmissionDTO) {
+                OrderSubmissionDTO orderDTO = (OrderSubmissionDTO) msg;
+                try {
+                    Session session = getSessionFactory().openSession();
+                    session.beginTransaction();
 
-            } else if (msg instanceof OrderCancellationDTO) {
+                    // 2. Calculate total price
+                    double total = orderDTO.getCart().stream()
+                            .mapToDouble(item -> {
+                                try {
+                                    return Double.parseDouble(item.getDish().getPrice()) * item.getQuantity();
+                                } catch (Exception e) {
+                                    return 0.0;
+                                }
+                            }).sum();
+
+                    // 3. Create and save the Order
+                    Order order = new Order(
+                            total,
+                            orderDTO.getAddress(),
+                            orderDTO.getName(),
+                            orderDTO.getId(),
+                            orderDTO.getCreditCard(),
+                            orderDTO.getDeliveryTime(),
+                            new Date()
+                    );
+                    session.save(order);
+
+                    // 4. Add OrderItems
+                    for (CartItem item : orderDTO.getCart()) {
+                        // Fetch the actual Dish from DB by ID
+                        Dish dish = session.get(Dish.class, item.getDish().getId());
+
+                        if (dish != null) {
+                            String prefs = String.join(", ", item.getSelectedPreferences());
+                            OrderItem orderItem = new OrderItem(order, dish, item.getQuantity(), prefs);
+                            session.save(orderItem);
+                        } else {
+                            System.err.println("[WARNING] Dish not found for ID: " + item.getDish().getId());
+                        }
+                    }
+
+                    session.getTransaction().commit();
+                    session.close();
+
+                    client.sendToClient(new responseDTO("OrderSuccess", new Object[]{}));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    try {
+                        client.sendToClient(new responseDTO("OrderFailure", new Object[]{}));
+                    } catch (IOException ioException) {
+                        ioException.printStackTrace();
+                    }
+                }
+        } else if (msg instanceof OrderCancellationDTO) {
                 OrderCancellationDTO cancelRequest = (OrderCancellationDTO) msg;
 
                 try (Session session = getSessionFactory().openSession()) {
@@ -659,7 +705,7 @@ public class MomServer extends AbstractServer {
                         ioException.printStackTrace();
                     }
                 }
-            } else if (msg instanceof reservationCancellationDTO) {
+        } else if (msg instanceof reservationCancellationDTO) {
                 reservationCancellationDTO cancelRequest = (reservationCancellationDTO) msg;
 
                 try (Session session = getSessionFactory().openSession()) {
@@ -701,8 +747,6 @@ public class MomServer extends AbstractServer {
                         ioException.printStackTrace();
                     }
                 }
-
-            }
         }
     }
 

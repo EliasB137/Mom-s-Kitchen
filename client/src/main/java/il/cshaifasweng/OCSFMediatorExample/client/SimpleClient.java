@@ -26,6 +26,10 @@ public class SimpleClient extends AbstractClient {
 	private static String selectedRestaurant;
 	private static List<CartItem> cart = new ArrayList<>();
 
+	//keep track of admin
+	private static int userID;
+	private static String userRole;
+
 	//keep track of the selected dish
 	private static dishDTO selectedDish;
 
@@ -66,6 +70,12 @@ public class SimpleClient extends AbstractClient {
 	public static String getSelectedRestaurant() {
 		return selectedRestaurant;
 	}
+
+	public static void setUserID(int id) {userID = id;}
+	public static int getUserID() {return userID;}
+
+	public static void setUserRole(String role) {userRole = role;}
+	public static String getUserRole() {return userRole;}
 
 	@Override
 	protected void handleMessageFromServer(Object msg) {
@@ -128,6 +138,11 @@ public class SimpleClient extends AbstractClient {
 					else
 						result.setMessage("success");
 					EventBus.getDefault().post(result);
+					break;
+				case "loginResult":
+					String loginResult = response.getPayload()[0].toString();
+					LoginResultEvent loginResultEvent = new LoginResultEvent(loginResult,(String) response.getPayload()[2],(int) response.getPayload()[1]);
+					EventBus.getDefault().post(loginResultEvent);
 					break;
 
 				default:
