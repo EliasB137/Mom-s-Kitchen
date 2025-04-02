@@ -217,6 +217,35 @@ public class MomServer extends AbstractServer {
             String command = message.getMessage();
             Object[] payload = message.getPayload();
 
+            //Feedback thing
+            if ("submitFeedback".equals(command)) {
+                System.out.println("Server received 'submitFeedback' request.");
+
+                try (Session session = sessionFactory.openSession()) {
+                    session.beginTransaction();
+
+                    FeedbackDTO feedbackDTO = (FeedbackDTO) payload[0];
+
+                    Feedback feedbackEntity = new Feedback(
+                            feedbackDTO.getFullName(),
+                            feedbackDTO.getEmail(),
+                            feedbackDTO.getCardId(),
+                            feedbackDTO.isDelivery(),
+                            feedbackDTO.getTableNumber(),
+                            feedbackDTO.getRestaurantName(),
+                            feedbackDTO.getFeedback() // the actual feedback message
+                    );
+
+                    session.save(feedbackEntity);
+                    session.getTransaction().commit();
+
+                    System.out.println(" Feedback saved successfully to database.");
+                } catch (Exception e) {
+                    System.err.println(" Error saving feedback: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+
             if(command.equals("getHours"))
             {
                 System.out.println("[DEBUG] Command getHours ");
@@ -266,42 +295,6 @@ public class MomServer extends AbstractServer {
                 System.out.println("[DEBUG] Got  " + tables.size() + " tables");
 
 
-        String msgString = msg.toString();
-
-        //Feedback thing:
-        if (msg instanceof responseDTO dto && "submitFeedback".equals(dto.getMessage())) {
-            System.out.println("Server received 'submitFeedback' request.");
-
-            try (Session session = sessionFactory.openSession()) {
-                session.beginTransaction();
-
-                Object[] payload = dto.getPayload();
-                FeedbackDTO feedbackDTO = (FeedbackDTO) payload[0];
-
-                Feedback feedbackEntity = new Feedback(
-                        feedbackDTO.getFullName(),
-                        feedbackDTO.getEmail(),
-                        feedbackDTO.getCardId(),
-                        feedbackDTO.isDelivery(),
-                        feedbackDTO.getTableNumber(),
-                        feedbackDTO.getRestaurantName(),
-                        feedbackDTO.getFeedback() // the actual feedback message
-                );
-
-                session.save(feedbackEntity);
-                session.getTransaction().commit();
-
-                System.out.println(" Feedback saved successfully to database.");
-            } catch (Exception e) {
-                System.err.println(" Error saving feedback: " + e.getMessage());
-                e.printStackTrace();
-            }
-        }
-
-
-
-        if (msgString.equals("getMenu")) {
-            System.out.println("Server received 'getMenu' request.");
                 List<String> hours = getAvailableHours(reservations,tables,restaurantName,numberOfGuest,date);
 
                 System.out.println("[DEBUG] Got " + hours.size() + " hours");
@@ -347,6 +340,9 @@ public class MomServer extends AbstractServer {
                 }
 
 
+            } else if (command.equals("logInRequest")) {
+                String username = payload[0].toString();
+                String password = payload[1].toString();
             }
         }else {
             String msgString = msg.toString();
@@ -839,7 +835,7 @@ public class MomServer extends AbstractServer {
                         // (reservation time is within 1 hour before or after current time)
                         if (reservationTime.equals(currentTime) ||
                                 (reservationTime.isBefore(currentTime) &&
-                                reservationTime.plusHours(1).isAfter(currentTime)) ||
+                                        reservationTime.plusHours(1).isAfter(currentTime)) ||
                                 (reservationTime.isAfter(currentTime) &&
                                         reservationTime.isBefore(currentTime.plusHours(1)))) {
                             isAvailable = false;
@@ -1016,7 +1012,7 @@ public class MomServer extends AbstractServer {
         session.beginTransaction();
 
         Reservation newReservation = new Reservation(selectedTableIds, date.toString(), time, restaurantName, name, email,
-                                                    creditCard,number,Integer.parseInt(numberOfGuest),customerId);
+                creditCard,number,Integer.parseInt(numberOfGuest),customerId);
 
         for (int table_id : selectedTableIds) {
             Tables table = session.get(Tables.class, table_id);
@@ -1032,8 +1028,5 @@ public class MomServer extends AbstractServer {
     }
 
 }
-
-
-
 
 
