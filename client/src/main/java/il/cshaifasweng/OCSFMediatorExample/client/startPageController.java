@@ -26,6 +26,9 @@ public class startPageController {
     private Button adminSignInButton;
 
     @FXML
+    private Button viewReservationButton;
+
+    @FXML
     private Button continueButton;
 
     @FXML
@@ -48,6 +51,7 @@ public class startPageController {
         requestRestaurantList();
 
         viewOrderButton.setOnAction(event -> SimpleClient.getClient().navigateTo("viewOrderView"));
+        viewReservationButton.setOnAction(event -> SimpleClient.getClient().navigateTo("viewReservationView"));
         adminSignInButton.setOnAction(event -> SimpleClient.getClient().navigateTo("adminSignInView"));
         continueButton.setOnAction(event -> handleContinue());
         exitButton.setOnAction(event -> exitApplication());

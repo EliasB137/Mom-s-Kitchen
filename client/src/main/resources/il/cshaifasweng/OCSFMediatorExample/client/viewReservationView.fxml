@@ -5,25 +5,25 @@
 <?import javafx.geometry.Insets?>
 
 <VBox spacing="15" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml"
-      fx:controller="il.cshaifasweng.OCSFMediatorExample.client.viewOrdersController">
+      fx:controller="il.cshaifasweng.OCSFMediatorExample.client.viewReservationsController">
     <padding>
         <Insets top="20" right="20" bottom="20" left="20"/>
     </padding>
 
 
-    <Label text="View Your Orders" style="-fx-font-size: 20px; -fx-font-weight: bold;" />
+    <Label text="View Your Reservations" style="-fx-font-size: 20px; -fx-font-weight: bold;" />
 
     <HBox spacing="10">
         <Label text="Enter ID:" />
         <TextField fx:id="idField" promptText="Customer ID" />
-        <Button fx:id="searchButton" text="Search Orders" />
+        <Button fx:id="searchButton" text="Search Reservations" />
     </HBox>
 
-    <TableView fx:id="ordersTable" prefHeight="300">
+    <TableView fx:id="reservationsTable" prefHeight="300">
         <columns>
-            <TableColumn fx:id="orderIdColumn" text="Order ID" />
-            <TableColumn fx:id="totalPriceColumn" text="Total Price" />
-            <TableColumn fx:id="deliveryTimeColumn" text="Delivery Time" />
+            <TableColumn fx:id="reservationIdColumn" text="Order ID" />
+            <TableColumn fx:id="dateColumn" text="Date" />
+            <TableColumn fx:id="numberOfGuestsColumn" text="Number Of Guests" />
             <TableColumn fx:id="actionColumn" text="Action" />
         </columns>
     </TableView>
