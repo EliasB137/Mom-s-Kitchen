@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="il.cshaifasweng.OCSFMediatorExample.client.FeedbackController"
+      alignment="CENTER"
+      spacing="10"
+      prefWidth="600"
+      prefHeight="600"
+      style="-fx-padding: 30; -fx-background-color: #ffffff;">
+
+    <Label text="Submit a Feedback" style="-fx-font-size: 20px;"/>
+
+    <HBox spacing="10">
+        <Label text="Service Type:"/>
+        <RadioButton fx:id="dineInRadio" text="Dine In" toggleGroup="$group"/>
+        <RadioButton fx:id="deliveryRadio" text="Delivery" toggleGroup="$group"/>
+    </HBox>
+
+    <TextField fx:id="tableField" promptText="Table Number" maxWidth="400"/>
+
+    <TextField fx:id="restaurantField" promptText="Restaurant Name" maxWidth="400"/>
+
+    <TextField fx:id="fullNameField" promptText="Full Name" maxWidth="400"/>
+    <TextField fx:id="emailField" promptText="Email Address" maxWidth="400"/>
+    <TextField fx:id="cardIdField" promptText="Card ID" maxWidth="400"/>
+
+    <TextArea fx:id="feedbackField"
+              promptText="Write your complaint"
+              prefRowCount="5" wrapText="true"
+              maxWidth="500"/>
+
+    <Button fx:id="backButton" text="Back"/>
+
+
+    <Button text="Submit Feedback" onAction="#handleSubmit"
+            style="-fx-background-color: #2196F3; -fx-text-fill: white;"/>
+
+    <Label fx:id="statusLabel" style="-fx-text-fill: red;"/>
+
+</VBox>

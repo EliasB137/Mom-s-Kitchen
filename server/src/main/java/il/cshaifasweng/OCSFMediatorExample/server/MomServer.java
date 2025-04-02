@@ -125,6 +125,39 @@ public class MomServer extends AbstractServer {
     protected void handleMessageFromClient(Object msg, ConnectionToClient client) {
 
         String msgString = msg.toString();
+
+        //Feedback thing:
+        if (msg instanceof responseDTO dto && "submitFeedback".equals(dto.getMessage())) {
+            System.out.println("Server received 'submitFeedback' request.");
+
+            try (Session session = sessionFactory.openSession()) {
+                session.beginTransaction();
+
+                Object[] payload = dto.getPayload();
+                FeedbackDTO feedbackDTO = (FeedbackDTO) payload[0];
+
+                Feedback feedbackEntity = new Feedback(
+                        feedbackDTO.getFullName(),
+                        feedbackDTO.getEmail(),
+                        feedbackDTO.getCardId(),
+                        feedbackDTO.isDelivery(),
+                        feedbackDTO.getTableNumber(),
+                        feedbackDTO.getRestaurantName(),
+                        feedbackDTO.getFeedback() // the actual feedback message
+                );
+
+                session.save(feedbackEntity);
+                session.getTransaction().commit();
+
+                System.out.println(" Feedback saved successfully to database.");
+            } catch (Exception e) {
+                System.err.println(" Error saving feedback: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+
+
+
         if (msgString.equals("getMenu")) {
             System.out.println("Server received 'getMenu' request.");
 
@@ -434,7 +467,7 @@ public class MomServer extends AbstractServer {
             // Register entity classes
             configuration.addAnnotatedClass(Dish.class);
             configuration.addAnnotatedClass(Restaurant.class);
-            configuration.addAnnotatedClass(FeedBack.class);
+            configuration.addAnnotatedClass(Feedback.class);
             configuration.addAnnotatedClass(Order.class);
             configuration.addAnnotatedClass(OrderItem.class);
             configuration.addAnnotatedClass(Reports.class);
