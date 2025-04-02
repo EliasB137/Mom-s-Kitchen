@@ -311,6 +311,9 @@ public class MomServer extends AbstractServer {
                 }
 
 
+            } else if (command.equals("logInRequest")) {
+                String username = payload[0].toString();
+                String password = payload[1].toString();
             }
         }else {
             String msgString = msg.toString();
