@@ -91,6 +91,7 @@ public class adminSignInController {
                 SimpleClient.setUserID(event.getId());
                 SimpleClient.setUserRole(event.getRole());
                 System.out.println("Logged in successfully " + event.getId() + event.getRole());
+                onClose();
                 SimpleClient.getClient().navigateTo("adminHomeView");
             } else {
                 System.out.println("ERROR" + message);

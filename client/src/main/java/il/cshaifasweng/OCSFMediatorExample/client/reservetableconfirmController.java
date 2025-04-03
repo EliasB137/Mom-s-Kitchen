@@ -23,6 +23,9 @@ import java.util.List;
 public class reservetableconfirmController {
 
     @FXML
+    private Button backButton;
+
+    @FXML
     private TextField CCTextField;
 
     @FXML
@@ -124,9 +127,11 @@ public class reservetableconfirmController {
                 comboBox_id.setItems(FXCollections.observableArrayList(availableTimes));
             });
         }else {
-            comboBox_id.setItems(FXCollections.observableArrayList(availableTimes));
-            sentence2.setText("");
-            sentence1.setText("there is no time in this day to seat your party, please choose a different day.");
+            Platform.runLater(() -> {
+                comboBox_id.setItems(FXCollections.observableArrayList(availableTimes));
+                sentence2.setText("");
+                sentence1.setText("there is no time in this day to seat your party, please choose a different day.");
+            });
         }
 
     }
@@ -139,5 +144,16 @@ public class reservetableconfirmController {
             else
                 confirm_Label.setText("The reservation is saved :) Thank you!");
         });
+    }
+
+
+    public void onClose() {
+        EventBus.getDefault().unregister(this);
+    }
+
+    @FXML
+    void backAction(ActionEvent event) {
+        onClose();
+        SimpleClient.getClient().navigateTo("reservetableView");
     }
 }

@@ -54,7 +54,7 @@ public class menuController {
         }
 
         searchButton.setOnAction(event -> searchDishes());
-        backButton.setOnAction(event -> SimpleClient.getClient().navigateTo("customerHomeView"));
+        backButton.setOnAction(event -> {onClose();SimpleClient.getClient().navigateTo("customerHomeView");});
 
         requestMenuData();
     }
@@ -111,5 +111,8 @@ public class menuController {
         } else {
             menuTableView.setItems(dishList); // restore full list
         }
+    }
+    public void onClose() {
+        EventBus.getDefault().unregister(this);
     }
 }

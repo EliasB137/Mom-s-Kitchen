@@ -149,6 +149,10 @@ public class SimpleClient extends AbstractClient {
 					LogoutResultEvent logoutResultEvent = new LogoutResultEvent(logoutResult);
 					EventBus.getDefault().post(logoutResultEvent);
 					break;
+				case"newReservationWasPlaced":
+					NewReservation newReservation = new NewReservation();
+					EventBus.getDefault().post(newReservation);
+					break;
 
 				default:
 					System.out.println("[WARN] Unknown responseDTO message: " + message);
