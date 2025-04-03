@@ -149,6 +149,11 @@ public class SimpleClient extends AbstractClient {
 					LogoutResultEvent logoutResultEvent = new LogoutResultEvent(logoutResult);
 					EventBus.getDefault().post(logoutResultEvent);
 					break;
+				case "PendingChangesResponse":
+					List<RequestedChangesDTO> pendingChanges = (List<RequestedChangesDTO>) response.getPayload()[0];
+					EventBus.getDefault().post(pendingChanges);
+					break;
+
 
 				default:
 					System.out.println("[WARN] Unknown responseDTO message: " + message);

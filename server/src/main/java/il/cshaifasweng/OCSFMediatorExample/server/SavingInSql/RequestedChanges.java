@@ -22,8 +22,6 @@ public class RequestedChanges implements Serializable {
     @Column(name = "personal_pref")
     private String personalPref;
 
-    @Column(name = "category")
-    private String category;
 
     @ManyToOne
     @JoinColumn(name = "dish_id")
@@ -32,12 +30,11 @@ public class RequestedChanges implements Serializable {
     // Constructors
     public RequestedChanges() {}
 
-    public RequestedChanges(int price, String ingredients, String name, String personalPref, String category, Dish dish) {
+    public RequestedChanges(int price, String ingredients, String name, String personalPref, Dish dish) {
         this.price = price;
         this.ingredients = ingredients;
         this.name = name;
         this.personalPref = personalPref;
-        this.category = category;
         this.dish = dish;
     }
 
@@ -57,8 +54,6 @@ public class RequestedChanges implements Serializable {
     public String getPersonalPref() { return personalPref; }
     public void setPersonalPref(String personalPref) { this.personalPref = personalPref; }
 
-    public String getCategory() { return category; }
-    public void setCategory(String category) { this.category = category; }
 
     public Dish getDish() { return dish; }
     public void setDish(Dish dish) { this.dish = dish; }
@@ -71,7 +66,6 @@ public class RequestedChanges implements Serializable {
                 ", ingredients='" + ingredients + '\'' +
                 ", name='" + name + '\'' +
                 ", personalPref='" + personalPref + '\'' +
-                ", category='" + category + '\'' +
                 ", dish=" + (dish != null ? dish.getName() : "null") +
                 '}';
     }

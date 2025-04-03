@@ -38,6 +38,9 @@ public class menuController {
 
     @FXML
     public void initialize() {
+        /// ////////////////////////
+
+        /// ///////////////////////////
         nameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getName()));
         ingredientsColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getIngredients()));
         priceColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getPrice()));
@@ -49,13 +52,32 @@ public class menuController {
         );
 
         if (searchCategoryChoiceBox.getItems().isEmpty()) {
-            searchCategoryChoiceBox.getItems().addAll("All", "Ingredient","Restaurant");
+            searchCategoryChoiceBox.getItems().addAll("All", "Ingredient", "Restaurant");
             searchCategoryChoiceBox.setValue("All");
         }
 
         searchButton.setOnAction(event -> searchDishes());
-        backButton.setOnAction(event -> SimpleClient.getClient().navigateTo("customerHomeView"));
+        backButton.setOnAction(event -> {
+            String role = SimpleClient.getUserRole();
+            if ("dietitian".equals(role)) {
+                SimpleClient.getClient().navigateTo("adminHomeView");
+            } else {
+                SimpleClient.getClient().navigateTo("customerHomeView");
+            }
+        });
 
+        if ("dietitian".equals(SimpleClient.getUserRole())) {
+            System.out.println(SimpleClient.getUserRole());
+            menuTableView.setOnMouseClicked(event -> {
+                if (event.getClickCount() == 2) {
+                    dishDTO selectedItem = menuTableView.getSelectionModel().getSelectedItem();
+                    if (selectedItem != null) {
+                        SimpleClient.setSelectedDish(selectedItem); // You need to add this method
+                        SimpleClient.getClient().navigateTo("dishView");
+                    }
+                }
+            });
+        }
         requestMenuData();
     }
 

@@ -230,9 +230,89 @@ public class MomServer extends AbstractServer {
             responseDTO message = (responseDTO) msg;
             String command = message.getMessage();
             Object[] payload = message.getPayload();
+            if (message.getMessage().equals("submitPriceChangeRequest")) {
+                RequestedChangesDTO change = (RequestedChangesDTO) message.getPayload()[0];
+
+                try (Session session = getSessionFactory().openSession()) {
+                    session.beginTransaction();
+
+                    Dish dish = session.get(Dish.class, change.getDishId());
+
+                    RequestedChanges req = new RequestedChanges(
+                            change.getPrice(),
+                            change.getIngredients(),
+                            change.getName(),
+                            change.getPersonalPref(),
+                            dish  // only pass the dish object now
+                    );
+
+                    session.save(req);
+                    session.getTransaction().commit();
+                    System.out.println("[DEBUG] RequestedChanges saved successfully.");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.err.println("[ERROR] Failed to save RequestedChanges.");
+                }
+            }
+            else if (message.getMessage().equals("defineAsChainDish")) {
+
+                int dishId = (int) message.getPayload()[0];
+
+                try (Session session = getSessionFactory().openSession()) {
+                    session.beginTransaction();
+
+                    Dish dish = session.get(Dish.class, dishId);
+                    if (dish != null) {
+                        List<String> restaurants = dish.getRestaurantNames();
+                        if (!restaurants.contains("All")) {
+                            restaurants.add("All");
+                            dish.setRestaurantNames(restaurants);
+                            session.update(dish);
+                            session.getTransaction().commit();
+                            System.out.println("[DEBUG] Dish marked as chain-wide.");
+                        } else {
+                            System.out.println("[INFO] Dish is already chain-wide.");
+                        }
+                    } else {
+                        System.err.println("[ERROR] Dish not found with ID: " + dishId);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.err.println("[ERROR] Failed to define dish as chain-wide.");
+                }
+            }
+
 
             //Feedback thing
-            if ("submitFeedback".equals(command)) {
+            else if (command.equals("processChangeRequest")) {
+                int dishId = (int) payload[0];
+                boolean approved = (boolean) payload[1];
+
+                try (Session session = getSessionFactory().openSession()) {
+                    session.beginTransaction();
+                    RequestedChanges change = session.createQuery(
+                                    "FROM RequestedChanges WHERE dish.id = :dishId", RequestedChanges.class)
+                            .setParameter("dishId", dishId)
+                            .uniqueResult();
+
+                    if (change != null) {
+                        if (approved) {
+                            Dish dish = change.getDish();
+                            dish.setPrice(String.valueOf(change.getPrice()));
+                            dish.setIngredients(change.getIngredients());
+                            dish.setAvailablePreferences(Arrays.asList(change.getPersonalPref().split(",")));
+                            session.update(dish);
+                        }
+                        session.remove(change); // Delete whether approved or rejected
+                    }
+
+                    session.getTransaction().commit();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            else if ("submitFeedback".equals(command)) {
                 System.out.println("Server received 'submitFeedback' request.");
 
                 try (Session session = sessionFactory.openSession()) {
@@ -421,7 +501,29 @@ public class MomServer extends AbstractServer {
             }
         } else if(msg instanceof String) {
             String msgString = msg.toString();
-            if (msgString.equals("getMenu")) {
+            if (msgString.equals("getPendingChanges")) {
+                try (Session session = getSessionFactory().openSession()) {
+                    session.beginTransaction();
+                    List<RequestedChanges> changes = session.createQuery("FROM RequestedChanges", RequestedChanges.class).list();
+
+                    List<RequestedChangesDTO> dtoList = changes.stream().map(change -> new RequestedChangesDTO(
+                            change.getPrice(),
+                            change.getIngredients(),
+                            change.getName(),
+                            change.getPersonalPref(),
+                            change.getDish().getId()
+                    )).collect(Collectors.toList());
+
+                    responseDTO response = new responseDTO("PendingChangesResponse", new Object[]{dtoList});
+                    client.sendToClient(response);
+
+                    session.getTransaction().commit();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            else if (msgString.equals("getMenu")) {
                 System.out.println("Server received 'getMenu' request.");
 
                 try {
@@ -638,6 +740,7 @@ public class MomServer extends AbstractServer {
                     e.printStackTrace();
                 }
             }
+
         } else if (msg instanceof OrderSubmissionDTO) {
                 OrderSubmissionDTO orderDTO = (OrderSubmissionDTO) msg;
                 try {
@@ -732,7 +835,9 @@ public class MomServer extends AbstractServer {
                         ioException.printStackTrace();
                     }
                 }
-        } else if (msg instanceof reservationCancellationDTO) {
+        }
+
+        else if (msg instanceof reservationCancellationDTO) {
                 reservationCancellationDTO cancelRequest = (reservationCancellationDTO) msg;
 
                 try (Session session = getSessionFactory().openSession()) {
@@ -775,6 +880,7 @@ public class MomServer extends AbstractServer {
                     }
                 }
         }
+
     }
 
     public static void initializeSessionFactory() throws HibernateException {

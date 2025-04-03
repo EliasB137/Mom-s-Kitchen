@@ -87,7 +87,7 @@ public class adminHomeController {
 //            accesLabel.setText("You dont have access for this action.");
 //            return;
 //        }
-        SimpleClient.getClient().navigateTo("UpdateMenuView");
+        SimpleClient.getClient().navigateTo("menuView");
     }
 
     @FXML
