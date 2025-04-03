@@ -2,6 +2,8 @@ package il.cshaifasweng.OCSFMediatorExample.client;
 
 import il.cshaifasweng.OCSFMediatorExample.client.events.LoginResultEvent;
 //import il.cshaifasweng.OCSFMediatorExample.client.events.LogoutResponseEvent;
+import il.cshaifasweng.OCSFMediatorExample.client.events.LogoutResultEvent;
+import il.cshaifasweng.OCSFMediatorExample.entities.DTO.responseDTO;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -42,7 +44,8 @@ public class adminHomeController {
     @FXML
     void logOutAction(ActionEvent event) {
         try {
-            SimpleClient.getClient().sendToServer("logOut");
+            responseDTO message = new responseDTO("logOutRequest", new Object[]{SimpleClient.getUserID()});
+            SimpleClient.getClient().sendToServer(message);
         } catch (IOException e) {
             Platform.runLater(() -> {
                 accesLabel.setText("Error connecting to server.");
@@ -117,33 +120,18 @@ public class adminHomeController {
         EventBus.getDefault().unregister(this);
     }
 
-//    @Subscribe
-//    public void handleLogoutResponse(LogoutResponseEvent event) {
-//        Platform.runLater(() -> {
-//            if (event.isSuccessful()) {
-//                SimpleClient.setUserID(0); // Reset user ID
-//                SimpleClient.setUserRole(null); // Reset user role
-//                SimpleClient.getClient().navigateTo("startPageView");
-//            } else {
-//                accesLabel.setText("Logout failed: " + event.getMessage());
-//            }
-//        });
-//    }
-
     @Subscribe
-    public void handleLoginResult(LoginResultEvent event) {
+    public void handleLogoutResponse(LogoutResultEvent event) {
+        String message = event.getMessage();
         Platform.runLater(() -> {
-            // This could be used if you need to handle login results in this controller
-            role = event.getRole();
+            if (message.equals("logoutSuccessful")) {
+                SimpleClient.setUserID(0); // Reset user ID
+                SimpleClient.setUserRole(null); // Reset user role
+                SimpleClient.getClient().navigateTo("startPageView");
+            } else {
+                accesLabel.setText("Logout failed: " + event.getMessage());
+            }
         });
     }
 
-    // This method is just to satisfy the EventBus requirement
-    // Replace with actual event handlers as needed
-    @Subscribe
-    public void handleGenericEvent(Object event) {
-        Platform.runLater(() -> {
-            System.out.println("Received event: " + event.getClass().getSimpleName());
-        });
-    }
 }

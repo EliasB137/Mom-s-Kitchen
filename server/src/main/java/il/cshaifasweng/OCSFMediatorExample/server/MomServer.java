@@ -391,6 +391,33 @@ public class MomServer extends AbstractServer {
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
+            }else if(command.equals("logOutRequest")) {
+                int userID = (int) payload[0];
+                Session session = sessionFactory.openSession();
+                session.beginTransaction();
+
+                String hql = "FROM User r WHERE r.id = :givenUserID";
+
+                Query query = session.createQuery(hql);
+                query.setParameter("givenUserID", userID);
+                User user = (User) query.uniqueResult();
+
+                user.setLoggedin(false);
+                session.update(user);
+
+                String reply = "logoutSuccessful";
+
+                responseDTO response = new responseDTO("logoutResult",new Object[]{reply});
+
+                session.getTransaction().commit();
+                session.close();
+
+                try {
+                    client.sendToClient(response);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
             }
         } else if(msg instanceof String) {
             String msgString = msg.toString();

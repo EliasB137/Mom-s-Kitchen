@@ -144,6 +144,11 @@ public class SimpleClient extends AbstractClient {
 					LoginResultEvent loginResultEvent = new LoginResultEvent(loginResult,(String) response.getPayload()[2],(int) response.getPayload()[1]);
 					EventBus.getDefault().post(loginResultEvent);
 					break;
+				case"logoutResult":
+					String logoutResult = response.getPayload()[0].toString();
+					LogoutResultEvent logoutResultEvent = new LogoutResultEvent(logoutResult);
+					EventBus.getDefault().post(logoutResultEvent);
+					break;
 
 				default:
 					System.out.println("[WARN] Unknown responseDTO message: " + message);
