@@ -56,46 +56,46 @@ public class adminHomeController {
 
     @FXML
     void approveChangesAction(ActionEvent event) {
-        if(!role.equals("manager")){
-            accesLabel.setText("You dont have access for this action.");
-            return;
-        }
+//        if(!role.equals("manager")){
+//            accesLabel.setText("You dont have access for this action.");
+//            return;
+//        }
         SimpleClient.getClient().navigateTo("ApproveChangesView");
     }
 
     @FXML
     void reserveTableAction(ActionEvent event) {
-        if(!role.equals("worker")){
-            accesLabel.setText("You dont have access for this action.");
-            return;
-        }
+//        if(!role.equals("worker")){
+//            accesLabel.setText("You dont have access for this action.");
+//            return;
+//        }
         SimpleClient.getClient().navigateTo("ReserveTableAdminView");
     }
 
     @FXML
     void reviewFeedbackAction(ActionEvent event) {
-        if(((!role.equals("costumer care")) && (!role.equals("manager")))){
-            accesLabel.setText("You dont have access for this action.");
-            return;
-        }
+//        if(((!role.equals("costumer care")) && (!role.equals("manager")))){
+//            accesLabel.setText("You dont have access for this action.");
+//            return;
+//        }
         SimpleClient.getClient().navigateTo("ReviewFeedbackView");
     }
 
     @FXML
     void updateMenuAction(ActionEvent event) {
-        if(!role.equals("dietitian ")){
-            accesLabel.setText("You dont have access for this action.");
-            return;
-        }
+//        if(!role.equals("dietitian ")){
+//            accesLabel.setText("You dont have access for this action.");
+//            return;
+//        }
         SimpleClient.getClient().navigateTo("UpdateMenuView");
     }
 
     @FXML
     void viewMapAction(ActionEvent event) {
-        if(!role.equals("worker")){
-            accesLabel.setText("You dont have access for this action.");
-            return;
-        }
+//        if(!role.equals("worker")){
+//            accesLabel.setText("You dont have access for this action.");
+//            return;
+//        }
         SimpleClient.getClient().navigateTo("ViewMapView");
     }
 
@@ -114,6 +114,48 @@ public class adminHomeController {
         accesLabel.setText("");
         // Get the user role from SimpleClient
         role = SimpleClient.getUserRole();
+        switch(role) {
+            case "worker":
+                aproveChangesButton.setVisible(false);
+                reviewFeedbackButton.setVisible(false);
+                updateMenuButton.setVisible(false);
+                reserveTableButton.setVisible(true);
+                viewMapButton.setVisible(true);
+                viewReportsButton.setVisible(true);
+                break;
+            case "manager":
+                aproveChangesButton.setVisible(true);
+                reviewFeedbackButton.setVisible(true);
+                updateMenuButton.setVisible(false);
+                reserveTableButton.setVisible(false);
+                viewMapButton.setVisible(false);
+                viewReportsButton.setVisible(true);
+                break;
+            case "dietitian":
+                aproveChangesButton.setVisible(false);
+                reviewFeedbackButton.setVisible(false);
+                updateMenuButton.setVisible(true);
+                reserveTableButton.setVisible(false);
+                viewMapButton.setVisible(false);
+                viewReportsButton.setVisible(false);
+                break;
+            case "customer care":
+                aproveChangesButton.setVisible(false);
+                reviewFeedbackButton.setVisible(true);
+                updateMenuButton.setVisible(false);
+                reserveTableButton.setVisible(false);
+                viewMapButton.setVisible(false);
+                viewReportsButton.setVisible(false);
+                break;
+            default:
+                System.out.println("[ERROR] Role doesnt exist: " + role);
+                aproveChangesButton.setVisible(false);
+                reviewFeedbackButton.setVisible(false);
+                updateMenuButton.setVisible(false);
+                reserveTableButton.setVisible(false);
+                viewMapButton.setVisible(false);
+                viewReportsButton.setVisible(false);
+        }
     }
 
     public void onClose() {
