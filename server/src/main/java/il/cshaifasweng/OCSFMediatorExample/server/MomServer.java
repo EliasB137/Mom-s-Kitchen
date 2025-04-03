@@ -419,9 +419,11 @@ public class MomServer extends AbstractServer {
 
                 if (!result.isEmpty()) {
                     responseDTO response = new responseDTO("reservationResult",new Object[]{result});
+                    responseDTO responseForAll = new responseDTO("newReservationWasPlaced",new Object[]{});
                     try {
                         client.sendToClient(response);
-                    } catch (IOException e) {
+                        sendToAllExcept(responseForAll, client);
+                   } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
                 }else {
@@ -1202,6 +1204,29 @@ public class MomServer extends AbstractServer {
         session.close();
 
         return selectedTableIds;
+    }
+
+    private void sendToAllExcept(Object msg, ConnectionToClient excludeClient) {
+        // Get a list of all client connections
+        Thread[] clientThreadList = getClientConnections();
+
+        for (int i = 0; i < clientThreadList.length; i++) {
+            if (clientThreadList[i] instanceof ConnectionToClient) {
+                ConnectionToClient client = (ConnectionToClient) clientThreadList[i];
+
+                // Skip the excluded client
+                if (client.equals(excludeClient)) {
+                    continue;
+                }
+
+                // Send to this client
+                try {
+                    client.sendToClient(msg);
+                } catch (IOException e) {
+                    System.out.println("Error sending to client: " + e.getMessage());
+                }
+            }
+        }
     }
 
 }

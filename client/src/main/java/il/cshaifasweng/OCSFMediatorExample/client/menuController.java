@@ -38,9 +38,6 @@ public class menuController {
 
     @FXML
     public void initialize() {
-        /// ////////////////////////
-
-        /// ///////////////////////////
         nameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getName()));
         ingredientsColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getIngredients()));
         priceColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getPrice()));
@@ -52,7 +49,7 @@ public class menuController {
         );
 
         if (searchCategoryChoiceBox.getItems().isEmpty()) {
-            searchCategoryChoiceBox.getItems().addAll("All", "Ingredient", "Restaurant");
+            searchCategoryChoiceBox.getItems().addAll("All", "Ingredient","Restaurant");
             searchCategoryChoiceBox.setValue("All");
         }
 
@@ -133,5 +130,8 @@ public class menuController {
         } else {
             menuTableView.setItems(dishList); // restore full list
         }
+    }
+    public void onClose() {
+        EventBus.getDefault().unregister(this);
     }
 }

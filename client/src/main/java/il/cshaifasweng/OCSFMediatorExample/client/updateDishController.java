@@ -64,5 +64,8 @@ public class updateDishController {
         dishName.setText("Name : " + dish.getName());
         dishPrice.setText("Price : " + dish.getPrice());
     }
+    public void onClose() {
+        EventBus.getDefault().unregister(this);
+    }
 
 }

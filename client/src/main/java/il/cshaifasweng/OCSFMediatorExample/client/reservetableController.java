@@ -22,6 +22,10 @@ public class reservetableController {
     public static LocalDate date;
     public static String inOrOut;
     public static String numberOfGuest;
+
+    @FXML
+    private Button backButton;
+
     @FXML
     private Button countinuebtn;
 
@@ -83,6 +87,8 @@ public class reservetableController {
 
             // Send the DTO object to the server
             SimpleClient.getClient().sendToServer(requestData);
+
+            onClose();
 
             SimpleClient.getClient().navigateTo("reservetableconfirmView");
         } catch (NumberFormatException | IOException e) {
@@ -157,5 +163,15 @@ public class reservetableController {
             restaurant = event;
             // If you need to update any UI components based on the restaurant data, do it here
         });
+    }
+
+    public void onClose() {
+        EventBus.getDefault().unregister(this);
+    }
+
+    @FXML
+    void backAction(ActionEvent event) {
+        onClose();
+        SimpleClient.getClient().navigateTo("customerHomeView");
     }
 }

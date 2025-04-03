@@ -129,7 +129,7 @@ public class viewReservationsController {
     @FXML
     public void handleBack() {
         onClose();
-        SimpleClient.getClient().navigateTo("customerHomeView");
+        SimpleClient.getClient().navigateTo("startPageView");
     }
 
     public void displayMessage(String msg) {

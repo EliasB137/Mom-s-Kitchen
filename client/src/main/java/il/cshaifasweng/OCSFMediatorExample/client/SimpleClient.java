@@ -154,6 +154,10 @@ public class SimpleClient extends AbstractClient {
 					EventBus.getDefault().post(pendingChanges);
 					break;
 
+				case"newReservationWasPlaced":
+					NewReservation newReservation = new NewReservation();
+					EventBus.getDefault().post(newReservation);
+					break;
 
 				default:
 					System.out.println("[WARN] Unknown responseDTO message: " + message);

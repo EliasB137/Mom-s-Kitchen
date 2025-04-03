@@ -74,7 +74,7 @@ public class adminHomeController {
 
     @FXML
     void reviewFeedbackAction(ActionEvent event) {
-//        if(((!role.equals("costumer care")) && (!role.equals("manager")))){
+//        if(((!role.equals("customer care")) && (!role.equals("manager")))){
 //            accesLabel.setText("You dont have access for this action.");
 //            return;
 //        }
@@ -101,10 +101,10 @@ public class adminHomeController {
 
     @FXML
     void viewReportsAction(ActionEvent event) {
-        if(((!role.equals("worker")) && (!role.equals("manager")))){
-            accesLabel.setText("You dont have access for this action.");
-            return;
-        }
+//        if(((!role.equals("worker")) && (!role.equals("manager")))){
+//            accesLabel.setText("You dont have access for this action.");
+//            return;
+//        }
         SimpleClient.getClient().navigateTo("ViewReportsView");
     }
 
