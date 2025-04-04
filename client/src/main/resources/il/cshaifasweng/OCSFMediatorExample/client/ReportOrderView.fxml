@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.AnchorPane?>
+
+
+<AnchorPane prefHeight="492.0" prefWidth="285.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.ReportOrderController">
+    <children>
+        <TableView fx:id="table" layoutX="31.0" layoutY="47.0" prefHeight="402.0" prefWidth="224.0">
+            <columns>
+                <TableColumn fx:id="dayColumn" prefWidth="75.0" text="Day" />
+                <TableColumn fx:id="numberOfOrdersColumn" prefWidth="148.00003051757812" text="Number of Orders" />
+            </columns>
+        </TableView>
+        <ComboBox fx:id="monthComboBox" layoutX="22.0" layoutY="14.0" prefWidth="150.0" promptText="Pick a Month" />
+        <Button fx:id="searchButton" layoutX="212.0" layoutY="14.0" mnemonicParsing="false" onAction="#searchAction" text="Search" />
+        <Button fx:id="backButton" layoutX="5.0" layoutY="458.0" mnemonicParsing="false" onAction="#backAction" text="Back" />
+        <Label fx:id="messageLabel" layoutX="129.0" layoutY="458.0" text="Label" />
+    </children>
+</AnchorPane>
