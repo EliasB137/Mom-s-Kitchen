@@ -50,7 +50,7 @@ public class startPageController {
         restaurantChoiceBox.setItems(restaurantList);
         requestRestaurantList();
 
-        viewOrderButton.setOnAction(event -> { onClose(); SimpleClient.getClient().navigateTo("viewOrderView");});
+        viewOrderButton.setOnAction(event -> { onClose(); SimpleClient.getClient().navigateTo("viewOrdersView");});
         viewReservationButton.setOnAction(event -> { onClose(); SimpleClient.getClient().navigateTo("viewReservationView");});
         adminSignInButton.setOnAction(event -> {onClose(); SimpleClient.getClient().navigateTo("adminSignInView");});
         continueButton.setOnAction(event -> handleContinue());

@@ -83,6 +83,20 @@ public static dishDTO convertToDishDTO(Dish dish) {
         }
     }
     /// //////////////////////////////////////
+    public static Dish convertToDishEntity(dishDTO dto) {
+        if (dto == null) return null;
+
+        return new Dish(
+                dto.getName(),
+                dto.getIngredients(),
+                new ArrayList<>(dto.getAvailablePreferences()),
+                dto.getPrice(),
+                dto.getImageUrl(),
+                dto.isDeliveryAvailable(),
+                new ArrayList<>(dto.getRestaurantNames())
+        );
+    }
+
 
 
 }

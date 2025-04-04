@@ -436,7 +436,33 @@ public class MomServer extends AbstractServer {
                 }
 
 
-            } else if (command.equals("logInRequest")) {
+            }
+            else if (command.equals("addDish")) {
+                dishDTO dto = (dishDTO) payload[0];
+
+                try (Session session = getSessionFactory().openSession()) {
+                    session.beginTransaction();
+
+                    Dish newDish = DTOConverter.convertToDishEntity(dto);
+
+                    session.save(newDish);
+                    session.getTransaction().commit();
+
+                    responseDTO response = new responseDTO("dishAdded", new Object[]{"Dish added: " + newDish.getName()});
+                    client.sendToClient(response);
+                    System.out.println("[DEBUG] Dish added successfully: " + newDish.getName());
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    try {
+                        client.sendToClient("dishAddError:" + e.getMessage());
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            }
+
+            else if (command.equals("logInRequest")) {
                 String username = payload[0].toString();
                 String password = payload[1].toString();
 
@@ -619,7 +645,30 @@ public class MomServer extends AbstractServer {
                     } catch (IOException e) {
                     }
                 }
-            } else if (msgString.startsWith("getMenuForRestaurant:")) {
+            }
+            else if (msgString.startsWith("removeDish:")) {
+                try (Session session = getSessionFactory().openSession()) {
+                    session.beginTransaction();
+
+                    int dishId = Integer.parseInt(msgString.replace("removeDish:", "").trim());
+                    Dish dish = session.get(Dish.class, dishId);
+
+                    if (dish != null) {
+                        session.remove(dish);
+                        session.getTransaction().commit();
+                        System.out.println("[DEBUG] Removed dish: " + dish.getName());
+
+                        // Notify client of success
+                        //client.sendToClient("dishRemoved:" + dishId);
+                    } else {
+                        System.err.println("[ERROR] Dish with ID " + dishId + " not found.");
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            else if (msgString.startsWith("getMenuForRestaurant:")) {
                 String restaurantName = msgString.replace("getMenuForRestaurant:", "").trim();
                 System.out.println("Server received 'getMenuForRestaurant' request for: " + restaurantName);
 

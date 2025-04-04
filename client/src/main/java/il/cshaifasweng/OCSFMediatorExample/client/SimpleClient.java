@@ -159,6 +159,16 @@ public class SimpleClient extends AbstractClient {
 					EventBus.getDefault().post(newReservation);
 					break;
 
+				case "dishAdded":
+					String confirmationMsg = response.getPayload()[0].toString();
+					EventBus.getDefault().post("dishAdded:");
+					break;
+
+				case "dishAddError":
+					String errorMsg = response.getPayload()[0].toString();
+					EventBus.getDefault().post("dishAddError:" + errorMsg);
+					break;
+
 				default:
 					System.out.println("[WARN] Unknown responseDTO message: " + message);
 			}
