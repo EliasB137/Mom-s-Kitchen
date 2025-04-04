@@ -94,6 +94,9 @@ public class menuController {
                 }
             });
         }
+        if (!"dietitian".equals(SimpleClient.getUserRole()) && actionsColumn != null) {
+            menuTableView.getColumns().remove(actionsColumn);
+        }
 
         requestMenuData();
     }
@@ -154,7 +157,7 @@ public class menuController {
         if (result.isPresent() && result.get() == ButtonType.OK) {
             try {
                 // Send delete request to server
-                SimpleClient.getClient().sendToServer("deleteDish " + dish.getId());
+                SimpleClient.getClient().sendToServer("removeDish:" + dish.getId());
 
                 // Optimistically remove from the local list
                 dishList.remove(dish);
@@ -206,6 +209,14 @@ public class menuController {
             requestMenuData();
         }
     }
+    @Subscribe
+    public void onMenuUpdated(String message) {
+        if ("menuUpdated".equals(message)) {
+            System.out.println("[DEBUG] Reloading menu after update...");
+            requestMenuData();  // Already implemented method to refresh the menu
+        }
+    }
+
 
     @Subscribe
     public void handleDishAdded(String message) {

@@ -23,10 +23,11 @@
 
         <Separator />
 
-        <Label text="Select Preferences:" style="-fx-font-weight: bold;" />
+        <Label fx:id="selectPreferencesLabel" text="Select Preferences:" style="-fx-font-weight: bold;" />
+
         <VBox fx:id="preferencesVBox" spacing="5" />
 
-        <HBox spacing="10" alignment="CENTER">
+        <HBox fx:id="spinnerbox" visible="true" managed="true" spacing="10" alignment="CENTER">
             <Label text="Quantity:" />
             <Spinner fx:id="quantitySpinner" prefWidth="80" editable="true"/>
         </HBox>

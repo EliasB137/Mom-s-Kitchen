@@ -8,6 +8,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 import java.io.IOException;
@@ -30,6 +31,8 @@ public class dishViewController {
     @FXML private TextArea ingredientsArea;
     @FXML private Button saveChangesButton;
     @FXML private Button requestChainButton;
+    @FXML private Label selectPreferencesLabel;
+    @FXML private HBox spinnerbox;
 
     private String selectedRestaurant;
     private dishDTO selectedDish;
@@ -67,6 +70,17 @@ public class dishViewController {
         // Setup preferences
         setupPreferences();
 
+        if (selectedDish.getAvailablePreferences() == null || selectedDish.getAvailablePreferences().isEmpty()) {
+            preferencesVBox.setVisible(false);
+            preferencesVBox.setManaged(false);
+            selectPreferencesLabel.setVisible(false);
+            selectPreferencesLabel.setManaged(false);
+        } else
+        {
+            selectPreferencesLabel.setVisible(true);
+            selectPreferencesLabel.setManaged(true);
+        }
+
         // Setup quantity spinner
         SpinnerValueFactory<Integer> valueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 50, 1);
         quantitySpinner.setValueFactory(valueFactory);
@@ -98,11 +112,21 @@ public class dishViewController {
         // By default, hide dietitian UI
         dietitianEditBox.setVisible(false);
         dietitianEditBox.setManaged(false);
+        preferencesVBox.setManaged(true);
+        preferencesVBox.setVisible(true);
+        spinnerbox.setManaged(true);
+        spinnerbox.setVisible(true);
+        selectPreferencesLabel.setVisible(true);
 
         if ("dietitian".equals(userRole)) {
             dietitianEditBox.setVisible(true);
             dietitianEditBox.setManaged(true);
 
+            selectPreferencesLabel.setVisible(false);
+            spinnerbox.setManaged(false);
+            spinnerbox.setVisible(false);
+            preferencesVBox.setManaged(false);
+            preferencesVBox.setVisible(false);
             // Add to cart button not needed for dietitians
             addToCartButton.setVisible(false);
 

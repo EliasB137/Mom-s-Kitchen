@@ -92,6 +92,13 @@ public class orderFoodController {
             e.printStackTrace();
         }
     }
+    @Subscribe
+    public void onMenuUpdated(String message) {
+        if ("menuUpdated".equals(message)) {
+            System.out.println("[DEBUG] Reloading menu after update...");
+            requestMenuData();  // Already implemented method to refresh the menu
+        }
+    }
 
     @Subscribe
     public void loadMenu(List<dishDTO> menuItems) {
