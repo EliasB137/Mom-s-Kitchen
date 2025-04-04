@@ -157,6 +157,11 @@ public class SimpleClient extends AbstractClient {
 					NewReservation newReservation = new NewReservation();
 					EventBus.getDefault().post(newReservation);
 					break;
+				case"ordersReport":
+				case"seatingReport":
+					List<Report> report = (List<Report>) response.getPayload()[0];
+					EventBus.getDefault().post(report);
+					break;
 
 				case "dishAdded":
 					String confirmationMsg = response.getPayload()[0].toString();

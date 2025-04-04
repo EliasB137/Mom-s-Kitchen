@@ -6,12 +6,13 @@ import il.cshaifasweng.OCSFMediatorExample.server.ocsf.AbstractServer;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.ConnectionToClient;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.Year;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Date;
@@ -21,7 +22,6 @@ import java.util.stream.Collectors;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 
-import net.bytebuddy.asm.Advice;
 import org.hibernate.*;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
@@ -616,6 +616,144 @@ public class MomServer extends AbstractServer {
                     throw new RuntimeException(e);
                 }
 
+            }else if(command.equals("getSeatingReport")){
+                String month = payload[0].toString();
+                try (Session session = getSessionFactory().openSession()) {
+                    session.beginTransaction();
+                    String monthNumber = monthNameToNumber(month);
+
+                    // Query to get reservations from the same month
+                    String hql = "FROM Reservation r WHERE SUBSTRING(r.date, 6, 2) = :month";
+                    List<Reservation> reservations = session.createQuery(hql, Reservation.class)
+                            .setParameter("month", monthNumber)
+                            .list();
+                    session.getTransaction().commit();
+                    // Assuming you already have the filtered reservations for the specific month
+                    Map<String, String> guestsPerDay = new HashMap<>();
+
+                    // Iterate through the reservations and sum up guests for each day
+                    // First create a temporary map to do the calculations
+                    Map<String, Integer> tempGuestsPerDay = new HashMap<>();
+
+                    for (Reservation reservation : reservations) {
+                        String fullDate = reservation.getDate(); // Format: "2025-04-04"
+
+                        // Extract just the day part (last 2 characters)
+                        String day = fullDate.substring(8, 10);
+
+                        int guests = reservation.getNumberOfGuests();
+
+                        // If this day already exists in the map, add to the count
+                        // Otherwise, initialize it with the current guest count
+                        tempGuestsPerDay.merge(day, guests, Integer::sum);
+                    }
+                    List<Report> seatingsReportList = new ArrayList<>();
+                    int year = LocalDate.now().getYear(); // Or extract from one of your reservations
+
+
+                    // Now convert the Integer values to String
+                    for (Map.Entry<String, Integer> entry : tempGuestsPerDay.entrySet()) {
+                        guestsPerDay.put(entry.getKey(), entry.getValue().toString());
+                    }
+
+                    // Determine the number of days in the month
+                    int daysInMonth;
+                    if (month.equals("February")) {
+                        // Check for leap year
+                        daysInMonth = Year.isLeap(year) ? 29 : 28;
+                    } else if (month.equals("April") || month.equals("June") ||
+                            month.equals("September") || month.equals("November")) {
+                        daysInMonth = 30;
+                    } else {
+                        daysInMonth = 31;
+                    }
+
+                    for (int i = 1; i <= daysInMonth; i++) {
+                        // Format day as two digits (01, 02, etc.)
+                        String dayStr = String.format("%02d", i);
+
+                        // Get the number of guests for this day, or "0" if no reservations
+                        String guestCount = guestsPerDay.getOrDefault(dayStr, "0");
+
+                        // Create a new seatingsReport object and add to the list
+                        seatingsReportList.add(new Report(dayStr, guestCount));
+                    }
+
+
+                    responseDTO response = new responseDTO("seatingReport",new Object[]{seatingsReportList});
+
+                    client.sendToClient(response);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else if (command.equals("getOrdersReport")) {
+                String month = payload[0].toString();
+                try (Session session = getSessionFactory().openSession()) {
+                    session.beginTransaction();
+                    String monthNumber = monthNameToNumber(month);
+
+                    // Query to get reservations from the same month
+                    String hql = "FROM Order o WHERE FUNCTION('MONTH', o.orderDate) = :monthNum";
+                    List<Order> orders = session.createQuery(hql, Order.class)
+                            .setParameter("monthNum", Integer.parseInt(monthNumber))
+                            .list();
+                    session.getTransaction().commit();
+
+                    // Assuming you already have the filtered reservations for the specific month
+                    Map<String, String> ordersPerDay = new HashMap<>();
+
+                    // Iterate through the reservations and sum up guests for each day
+                    // First create a temporary map to do the calculations
+                    Map<String, Integer> tempOrdersPerDay = new HashMap<>();
+
+                    for (Order order : orders) {
+                        String fullDate = order.getOrderDate().toString(); // Format: "2025-04-04"
+
+                        // Extract just the day part (last 2 characters)
+                        SimpleDateFormat sdf = new SimpleDateFormat("dd"); // "dd" gives day of month with leading zero
+                        String day = sdf.format(fullDate);
+
+                        // If this day already exists in the map, add to the count
+                        // Otherwise, initialize it with the current guest count
+                        tempOrdersPerDay.merge(day, 1, Integer::sum);
+                    }
+                    List<Report> ordersReportList = new ArrayList<>();
+                    int year = LocalDate.now().getYear(); // Or extract from one of your reservations
+
+
+                    // Now convert the Integer values to String
+                    for (Map.Entry<String, Integer> entry : tempOrdersPerDay.entrySet()) {
+                        ordersPerDay.put(entry.getKey(), entry.getValue().toString());
+                    }
+                    int daysInMonth;
+                    if (month.equals("February")) {
+                        // Check for leap year
+                        daysInMonth = Year.isLeap(year) ? 29 : 28;
+                    } else if (month.equals("April") || month.equals("June") ||
+                            month.equals("September") || month.equals("November")) {
+                        daysInMonth = 30;
+                    } else {
+                        daysInMonth = 31;
+                    }
+
+                    for (int i = 1; i <= daysInMonth; i++) {
+                        // Format day as two digits (01, 02, etc.)
+                        String dayStr = String.format("%02d", i);
+
+                        // Get the number of guests for this day, or "0" if no reservations
+                        String guestCount = ordersPerDay.getOrDefault(dayStr, "0");
+
+                        // Create a new seatingsReport object and add to the list
+                        ordersReportList.add(new Report(dayStr, guestCount));
+                    }
+
+
+                    responseDTO response = new responseDTO("ordersReport",new Object[]{ordersReportList});
+
+                    client.sendToClient(response);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         } else if(msg instanceof String) {
             String msgString = msg.toString();
@@ -1023,6 +1161,25 @@ public class MomServer extends AbstractServer {
                 }
         }
 
+    }
+
+    private String monthNameToNumber(String month) {
+        Map<String, String> monthNameToNumber = new HashMap<>();
+        monthNameToNumber.put("january", "01");
+        monthNameToNumber.put("february", "02");
+        monthNameToNumber.put("march", "03");
+        monthNameToNumber.put("april", "04");
+        monthNameToNumber.put("may", "05");
+        monthNameToNumber.put("june", "06");
+        monthNameToNumber.put("july", "07");
+        monthNameToNumber.put("august", "08");
+        monthNameToNumber.put("september", "09");
+        monthNameToNumber.put("october", "10");
+        monthNameToNumber.put("november", "11");
+        monthNameToNumber.put("december", "12");
+
+        String monthNumber = monthNameToNumber.get(month);
+        return monthNumber;
     }
 
     public static void initializeSessionFactory() throws HibernateException {

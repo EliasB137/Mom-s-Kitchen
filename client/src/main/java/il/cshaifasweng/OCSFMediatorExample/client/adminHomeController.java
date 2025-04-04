@@ -105,7 +105,7 @@ public class adminHomeController {
 //            accesLabel.setText("You dont have access for this action.");
 //            return;
 //        }
-        SimpleClient.getClient().navigateTo("ViewReportsView");
+        SimpleClient.getClient().navigateTo("ReportsPickView");
     }
 
     @FXML
