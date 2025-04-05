@@ -51,6 +51,7 @@ public class MomServer extends AbstractServer {
 
 
     }
+
     private void ensureTestDataExists() {
         Session session = null;
         try {
@@ -157,26 +158,26 @@ public class MomServer extends AbstractServer {
                 session.update(restaurantAddTableTo);
 
 
-                User user = new User("restaurant manager","restaurant manager","restaurant manager" , "Golden Gate Bites");
+                User user = new User("restaurant manager", "restaurant manager", "restaurant manager", "Golden Gate Bites");
                 session.save(user);
                 session.flush();
-                user = new User("chain manager","chain manager","chain manager", "");
+                user = new User("chain manager", "chain manager", "chain manager", "");
                 session.save(user);
                 session.flush();
-                user = new User("worker","worker","worker", "");
+                user = new User("worker", "worker", "worker", "");
                 session.save(user);
                 session.flush();
-                user = new User("dietitian","dietitian","dietitian", "");
+                user = new User("dietitian", "dietitian", "dietitian", "");
                 session.save(user);
                 session.flush();
-                user = new User("customer care","customer care","customer care" , "");
+                user = new User("customer care", "customer care", "customer care", "");
                 session.save(user);
                 session.flush();
 
                 System.out.println("Linked " + table.getId() + " to " + restaurantAddTableTo.getName());
             }
             session.getTransaction().commit();
-        }catch (Exception e) {
+        } catch (Exception e) {
             if (session != null) {
                 session.getTransaction().rollback();
             }
@@ -200,7 +201,7 @@ public class MomServer extends AbstractServer {
                 query.setParameter("id", 2);
                 Tables tableAddReservationTo = query.uniqueResult();
 
-                Reservation reservation = new Reservation(Arrays.asList(2),"2025-04-04","10:00","Golden Gate Bites","tony","tonysabbah@gmail.com","123412341234,123","1234567890", 3,"213991516");
+                Reservation reservation = new Reservation(Arrays.asList(2), "2025-04-04", "10:00", "Golden Gate Bites", "tony", "tonysabbah@gmail.com", "123412341234,123", "1234567890", 3, "213991516");
                 session.save(reservation);
                 session.flush();
 
@@ -210,7 +211,7 @@ public class MomServer extends AbstractServer {
                 System.out.println("Linked " + reservation.getId() + " to " + tableAddReservationTo.getId());
             }
             session.getTransaction().commit();
-        }catch (Exception e) {
+        } catch (Exception e) {
             if (session != null) {
                 session.getTransaction().rollback();
             }
@@ -230,9 +231,10 @@ public class MomServer extends AbstractServer {
 
 
 
+
     @Override
     protected void handleMessageFromClient(Object msg, ConnectionToClient client) {
-        if(msg instanceof responseDTO){
+        if (msg instanceof responseDTO) {
             responseDTO message = (responseDTO) msg;
             String command = message.getMessage();
             Object[] payload = message.getPayload();
@@ -437,6 +439,37 @@ public class MomServer extends AbstractServer {
 //                    e.printStackTrace();
 //                }
 //            }
+
+                } else if ("submitFeedback".equals(command)) {
+                    System.out.println("Server received 'submitFeedback' request.");
+
+                    try (Session session = sessionFactory.openSession()) {
+                        session.beginTransaction();
+
+                        FeedbackDTO feedbackDTO = (FeedbackDTO) payload[0];
+
+                        Feedback feedbackEntity = new Feedback(
+                                feedbackDTO.getFullName(),
+                                feedbackDTO.getEmail(),
+                                feedbackDTO.getCardId(),
+                                feedbackDTO.isDelivery(),
+                                feedbackDTO.getTableNumber(),
+                                feedbackDTO.getRestaurantName(),
+                                feedbackDTO.getFeedback(), // the actual feedback message
+                                feedbackDTO.getCompensated(),
+                                feedbackDTO.getResponded()
+                        );
+
+                        session.save(feedbackEntity);
+                        session.getTransaction().commit();
+
+                        System.out.println(" Feedback saved successfully to database.");
+                    } catch (Exception e) {
+                        System.err.println(" Error saving feedback: " + e.getMessage());
+                        e.printStackTrace();
+                    }
+                }
+
             else if (command.equals("processChangeRequest")) {
                 int dishId = (int) payload[0];
                 boolean approved = (boolean) payload[1];
@@ -467,135 +500,103 @@ public class MomServer extends AbstractServer {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-            }
 
-            else if ("submitFeedback".equals(command)) {
-                System.out.println("Server received 'submitFeedback' request.");
+                if (command.equals("getHours")) {
+                    System.out.println("[DEBUG] Command getHours ");
 
-                try (Session session = sessionFactory.openSession()) {
+                    LocalDate date = (LocalDate) payload[0];
+                    String time = payload[1].toString();
+                    String inOrOut = payload[2].toString();
+                    String numberOfGuest = payload[3].toString();
+                    String restaurantName = payload[4].toString();
+
+                    Session session = sessionFactory.openSession();
                     session.beginTransaction();
 
-                    FeedbackDTO feedbackDTO = (FeedbackDTO) payload[0];
+                    String hql1 = "FROM Reservation r WHERE r.restaurant = :givenRestaurantName AND r.date = :givenDate";
 
-                    Feedback feedbackEntity = new Feedback(
-                            feedbackDTO.getFullName(),
-                            feedbackDTO.getEmail(),
-                            feedbackDTO.getCardId(),
-                            feedbackDTO.isDelivery(),
-                            feedbackDTO.getTableNumber(),
-                            feedbackDTO.getRestaurantName(),
-                            feedbackDTO.getFeedback(), // the actual feedback message
-                            feedbackDTO.getCompensated(),
-                            feedbackDTO.getResponded()
-                    );
-
-                    session.save(feedbackEntity);
-                    session.getTransaction().commit();
-
-                    System.out.println(" Feedback saved successfully to database.");
-                } catch (Exception e) {
-                    System.err.println(" Error saving feedback: " + e.getMessage());
-                    e.printStackTrace();
-                }
-            }
-
-            if(command.equals("getHours"))
-            {
-                System.out.println("[DEBUG] Command getHours ");
-
-                LocalDate date = (LocalDate) payload[0];
-                String time = payload[1].toString();
-                String inOrOut = payload[2].toString();
-                String numberOfGuest = payload[3].toString();
-                String restaurantName = payload[4].toString();
-
-                Session session = sessionFactory.openSession();
-                session.beginTransaction();
-
-                String hql1 = "FROM Reservation r WHERE r.restaurant = :givenRestaurantName AND r.date = :givenDate";
-
-                List<Reservation> reservations = null;
-                try {
-                    Query<Reservation> query1 = session.createQuery(hql1, Reservation.class);
-                    query1.setParameter("givenRestaurantName", restaurantName);
-                    query1.setParameter("givenDate", date.toString());
-                    reservations = query1.list();
-                    System.out.println("[DEBUG] Got " + reservations.size() + " reservations " + date.toString()+ " " + restaurantName);
-                } catch (Exception e) {
-                    System.out.println("[DEBUG] Query error: " + e.getMessage());
-                    e.printStackTrace();
-                }
-
-                for (Reservation reservation : reservations) {
-                    Hibernate.initialize(reservation.getTable());
-                }
-
-                String hql2 = "FROM Tables r WHERE r.restaurant = :givenRestaurantName AND r.tableIn = :isInTable";
-
-                Query query2 = session.createQuery(hql2);
-                query2.setParameter("givenRestaurantName", restaurantName);
-                if(inOrOut.equals("Inside"))
-                    query2.setParameter("isInTable", true);
-                else
-                    query2.setParameter("isInTable", false);
-                List<Tables> tables = query2.list();
-                for (Tables table : tables) {
-                    Hibernate.initialize(table.getReservations());
-                }
-                session.getTransaction().commit();
-                session.close();
-
-                System.out.println("[DEBUG] Got  " + tables.size() + " tables");
-
-
-                List<String> hours = getAvailableHours(reservations,tables,restaurantName,numberOfGuest,date);
-
-                System.out.println("[DEBUG] Got " + hours.size() + " hours");
-
-                responseDTO response = new responseDTO("availableHours",new Object[]{hours});
-                try {
-                    client.sendToClient(response);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }else if(command.equals("confirmReservation")) {
-                System.out.println("[DEBUG] Command confirmReservation ");
-
-                String name = payload[0].toString();
-                String number = payload[1].toString();
-                String creditCard = payload[2].toString();
-                String email = payload[3].toString();
-                String time = payload[4].toString();
-                LocalDate date = (LocalDate) payload[5];
-                String numberOfGuest = payload[6].toString();
-                String restaurantName = payload[7].toString();
-                String inOrOut = payload[8].toString();
-                String customerId = payload[9].toString();
-
-                Session session = sessionFactory.openSession();
-
-                List<Integer> result = confirmReservations(name,number,creditCard,email,time,date,numberOfGuest,restaurantName,inOrOut,customerId);
-
-                if (!result.isEmpty()) {
-                    responseDTO response = new responseDTO("reservationResult",new Object[]{result});
-                    responseDTO responseForAll = new responseDTO("updateReservations",new Object[]{});
+                    List<Reservation> reservations = null;
                     try {
-                        client.sendToClient(response);
-                        sendToAllExcept(responseForAll, client);
-                   } catch (IOException e) {
-                        throw new RuntimeException(e);
+                        Query<Reservation> query1 = session.createQuery(hql1, Reservation.class);
+                        query1.setParameter("givenRestaurantName", restaurantName);
+                        query1.setParameter("givenDate", date.toString());
+                        reservations = query1.list();
+                        System.out.println("[DEBUG] Got " + reservations.size() + " reservations " + date.toString() + " " + restaurantName);
+                    } catch (Exception e) {
+                        System.out.println("[DEBUG] Query error: " + e.getMessage());
+                        e.printStackTrace();
                     }
-                }else {
-                    responseDTO response = new responseDTO("reservationResult",new Object[]{});
+
+                    for (Reservation reservation : reservations) {
+                        Hibernate.initialize(reservation.getTable());
+                    }
+
+                    String hql2 = "FROM Tables r WHERE r.restaurant = :givenRestaurantName AND r.tableIn = :isInTable";
+
+                    Query query2 = session.createQuery(hql2);
+                    query2.setParameter("givenRestaurantName", restaurantName);
+                    if (inOrOut.equals("Inside"))
+                        query2.setParameter("isInTable", true);
+                    else
+                        query2.setParameter("isInTable", false);
+                    List<Tables> tables = query2.list();
+                    for (Tables table : tables) {
+                        Hibernate.initialize(table.getReservations());
+                    }
+                    session.getTransaction().commit();
+                    session.close();
+
+                    System.out.println("[DEBUG] Got  " + tables.size() + " tables");
+
+
+                    List<String> hours = getAvailableHours(reservations, tables, restaurantName, numberOfGuest, date);
+
+                    System.out.println("[DEBUG] Got " + hours.size() + " hours");
+
+                    responseDTO response = new responseDTO("availableHours", new Object[]{hours});
                     try {
                         client.sendToClient(response);
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
+                } else if (command.equals("confirmReservation")) {
+                    System.out.println("[DEBUG] Command confirmReservation ");
+
+                    String name = payload[0].toString();
+                    String number = payload[1].toString();
+                    String creditCard = payload[2].toString();
+                    String email = payload[3].toString();
+                    String time = payload[4].toString();
+                    LocalDate date = (LocalDate) payload[5];
+                    String numberOfGuest = payload[6].toString();
+                    String restaurantName = payload[7].toString();
+                    String inOrOut = payload[8].toString();
+                    String customerId = payload[9].toString();
+
+                    Session session = sessionFactory.openSession();
+
+                    List<Integer> result = confirmReservations(name, number, creditCard, email, time, date, numberOfGuest, restaurantName, inOrOut, customerId);
+
+                    if (!result.isEmpty()) {
+                        responseDTO response = new responseDTO("reservationResult", new Object[]{result});
+                        responseDTO responseForAll = new responseDTO("updateReservations", new Object[]{});
+                        try {
+                            client.sendToClient(response);
+                            sendToAllExcept(responseForAll, client);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    } else {
+                        responseDTO response = new responseDTO("reservationResult", new Object[]{});
+                        try {
+                            client.sendToClient(response);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+
+
                 }
-
-
-            }
 //            else if (command.equals("addDish")) {
 //                dishDTO dto = (dishDTO) payload[0];
 //
@@ -620,596 +621,589 @@ public class MomServer extends AbstractServer {
 //                    }
 //                }
 //            }
-            else if (command.equals("addDish")) {
-                dishDTO dto = (dishDTO) payload[0];
+                else if (command.equals("addDish")) {
+                    dishDTO dto = (dishDTO) payload[0];
 
-                try (Session session = getSessionFactory().openSession()) {
-                    session.beginTransaction();
+                    try (Session session = getSessionFactory().openSession()) {
+                        session.beginTransaction();
 
-                    Dish newDish = DTOConverter.convertToDishEntity(dto);
+                        Dish newDish = DTOConverter.convertToDishEntity(dto);
 
-                    session.save(newDish);
-                    session.getTransaction().commit();
+                        session.save(newDish);
+                        session.getTransaction().commit();
 
-                    responseDTO response = new responseDTO("dishAdded", new Object[]{"Dish added: " + newDish.getName()});
-                    client.sendToClient(response);
+                        responseDTO response = new responseDTO("dishAdded", new Object[]{"Dish added: " + newDish.getName()});
+                        client.sendToClient(response);
 
-                    // Notify all other clients about the menu update
-                    responseDTO updateNotification = new responseDTO("menuUpdated", new Object[]{"Dish added"});
-                    sendToAllExcept(updateNotification, client);
+                        // Notify all other clients about the menu update
+                        responseDTO updateNotification = new responseDTO("menuUpdated", new Object[]{"Dish added"});
+                        sendToAllExcept(updateNotification, client);
 
-                    System.out.println("[DEBUG] Dish added successfully: " + newDish.getName());
+                        System.out.println("[DEBUG] Dish added successfully: " + newDish.getName());
 
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    try {
-                        client.sendToClient("dishAddError:" + e.getMessage());
-                    } catch (IOException ex) {
-                        ex.printStackTrace();
-                    }
-                }
-            }
-
-            else if (command.equals("logInRequest")) {
-                String username = payload[0].toString();
-                String password = payload[1].toString();
-
-                Session session = sessionFactory.openSession();
-                session.beginTransaction();
-
-                String hql = "FROM User r WHERE r.username = :givenUsername AND r.password = :givenPassword";
-
-                Query query = session.createQuery(hql);
-                query.setParameter("givenUsername", username);
-                query.setParameter("givenPassword", password);
-                User user = (User) query.uniqueResult();
-
-                int userID =0;
-                String userRole = "0";
-
-                String reply ;
-                if(user == null) {
-                    reply = "notFound";
-                }else if(user.getLoggedin()){
-                    reply = "alreadyLoggedin";
-                }else{
-                    reply = "loginSuccessful";
-                    userID = user.getId();
-                    userRole = user.getRole();
-                    user.setLoggedin(true);
-                    session.update(user);
-                }
-                responseDTO response = new responseDTO("loginResult",new Object[]{reply,userID,userRole});
-                session.getTransaction().commit();
-                session.close();
-                try {
-                    client.sendToClient(response);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }else if(command.equals("logOutRequest")) {
-                int userID = (int) payload[0];
-                Session session = sessionFactory.openSession();
-                session.beginTransaction();
-
-                String hql = "FROM User r WHERE r.id = :givenUserID";
-
-                Query query = session.createQuery(hql);
-                query.setParameter("givenUserID", userID);
-                User user = (User) query.uniqueResult();
-
-                user.setLoggedin(false);
-                session.update(user);
-
-                String reply = "logoutSuccessful";
-
-                responseDTO response = new responseDTO("logoutResult",new Object[]{reply});
-
-                session.getTransaction().commit();
-                session.close();
-
-                try {
-                    client.sendToClient(response);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-
-            }else if(command.equals("getSeatingReport")){
-                String month = payload[0].toString();
-                try (Session session = getSessionFactory().openSession()) {
-                    session.beginTransaction();
-                    String monthNumber = monthNameToNumber(month);
-
-                    // Query to get reservations from the same month
-                    String hql = "FROM Reservation r WHERE SUBSTRING(r.date, 6, 2) = :month";
-                    List<Reservation> reservations = session.createQuery(hql, Reservation.class)
-                            .setParameter("month", monthNumber)
-                            .list();
-                    session.getTransaction().commit();
-                    // Assuming you already have the filtered reservations for the specific month
-                    Map<String, String> guestsPerDay = new HashMap<>();
-
-                    // Iterate through the reservations and sum up guests for each day
-                    // First create a temporary map to do the calculations
-                    Map<String, Integer> tempGuestsPerDay = new HashMap<>();
-
-                    for (Reservation reservation : reservations) {
-                        String fullDate = reservation.getDate(); // Format: "2025-04-04"
-
-                        // Extract just the day part (last 2 characters)
-                        String day = fullDate.substring(8, 10);
-
-                        int guests = reservation.getNumberOfGuests();
-
-                        // If this day already exists in the map, add to the count
-                        // Otherwise, initialize it with the current guest count
-                        tempGuestsPerDay.merge(day, guests, Integer::sum);
-                    }
-                    List<Report> seatingsReportList = new ArrayList<>();
-                    int year = LocalDate.now().getYear(); // Or extract from one of your reservations
-
-
-                    // Now convert the Integer values to String
-                    for (Map.Entry<String, Integer> entry : tempGuestsPerDay.entrySet()) {
-                        guestsPerDay.put(entry.getKey(), entry.getValue().toString());
-                    }
-
-                    // Determine the number of days in the month
-                    int daysInMonth;
-                    if (month.equals("February")) {
-                        // Check for leap year
-                        daysInMonth = Year.isLeap(year) ? 29 : 28;
-                    } else if (month.equals("April") || month.equals("June") ||
-                            month.equals("September") || month.equals("November")) {
-                        daysInMonth = 30;
-                    } else {
-                        daysInMonth = 31;
-                    }
-
-                    for (int i = 1; i <= daysInMonth; i++) {
-                        // Format day as two digits (01, 02, etc.)
-                        String dayStr = String.format("%02d", i);
-
-                        // Get the number of guests for this day, or "0" if no reservations
-                        String guestCount = guestsPerDay.getOrDefault(dayStr, "0");
-
-                        // Create a new seatingsReport object and add to the list
-                        seatingsReportList.add(new Report(dayStr, guestCount));
-                    }
-
-
-                    responseDTO response = new responseDTO("seatingReport",new Object[]{seatingsReportList});
-
-                    client.sendToClient(response);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            } else if (command.equals("getOrdersReport")) {
-                String month = payload[0].toString();
-                try (Session session = getSessionFactory().openSession()) {
-                    session.beginTransaction();
-                    String monthNumber = monthNameToNumber(month);
-
-                    // Query to get reservations from the same month
-                    String hql = "FROM Order o WHERE FUNCTION('MONTH', o.orderDate) = :monthNum";
-                    List<Order> orders = session.createQuery(hql, Order.class)
-                            .setParameter("monthNum", Integer.parseInt(monthNumber))
-                            .list();
-                    session.getTransaction().commit();
-
-                    // Assuming you already have the filtered reservations for the specific month
-                    Map<String, String> ordersPerDay = new HashMap<>();
-
-                    // Iterate through the reservations and sum up guests for each day
-                    // First create a temporary map to do the calculations
-                    Map<String, Integer> tempOrdersPerDay = new HashMap<>();
-
-                    for (Order order : orders) {
-                        String fullDate = order.getOrderDate().toString(); // Format: "2025-04-04"
-
-                        // Extract just the day part (last 2 characters)
-                        SimpleDateFormat sdf = new SimpleDateFormat("dd"); // "dd" gives day of month with leading zero
-                        String day = sdf.format(fullDate);
-
-                        // If this day already exists in the map, add to the count
-                        // Otherwise, initialize it with the current guest count
-                        tempOrdersPerDay.merge(day, 1, Integer::sum);
-                    }
-                    List<Report> ordersReportList = new ArrayList<>();
-                    int year = LocalDate.now().getYear(); // Or extract from one of your reservations
-
-
-                    // Now convert the Integer values to String
-                    for (Map.Entry<String, Integer> entry : tempOrdersPerDay.entrySet()) {
-                        ordersPerDay.put(entry.getKey(), entry.getValue().toString());
-                    }
-                    int daysInMonth;
-                    if (month.equals("February")) {
-                        // Check for leap year
-                        daysInMonth = Year.isLeap(year) ? 29 : 28;
-                    } else if (month.equals("April") || month.equals("June") ||
-                            month.equals("September") || month.equals("November")) {
-                        daysInMonth = 30;
-                    } else {
-                        daysInMonth = 31;
-                    }
-
-                    for (int i = 1; i <= daysInMonth; i++) {
-                        // Format day as two digits (01, 02, etc.)
-                        String dayStr = String.format("%02d", i);
-
-                        // Get the number of guests for this day, or "0" if no reservations
-                        String guestCount = ordersPerDay.getOrDefault(dayStr, "0");
-
-                        // Create a new seatingsReport object and add to the list
-                        ordersReportList.add(new Report(dayStr, guestCount));
-                    }
-
-
-                    responseDTO response = new responseDTO("ordersReport",new Object[]{ordersReportList});
-
-                    client.sendToClient(response);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            } else if (command.equals("getFeedBackReport")) {
-                String userRole = payload[0].toString();
-                String selectedRestaurant = payload[1].toString();
-                List<Feedback> feedbackList = new ArrayList<>();
-                try (Session session = getSessionFactory().openSession()) {
-                    session.beginTransaction();
-                    String hql;
-                    if(userRole.equals("restaurant manager")) {
-                        hql = "FROM Feedback r WHERE r.restaurantName = :givenRestaurant";
-                        Query<Feedback> query = session.createQuery(hql, Feedback.class);
-                        query.setParameter("givenRestaurant", selectedRestaurant);
-                        feedbackList = query.list();
-                    }else {
-                        hql = "FROM Feedback";
-                        Query<Feedback> query = session.createQuery(hql, Feedback.class);
-                        feedbackList = query.list();
-                    }
-                    session.getTransaction().commit();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                List<DataPoint> dataPoints = convertFeedbackToDataPoints(feedbackList);
-
-                responseDTO response = new responseDTO("feedbacksReport",new Object[]{dataPoints});
-
-                try {
-                    client.sendToClient(response);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }else if(command.equals("getTableMap")){
-                List<Reservation> reservations = getCurrentReservationsWithRoundedTime();
-                System.out.println("Check1");
-
-                if (reservations == null) {
-                    System.out.println("reservations is null");
-                    return;
-                }
-
-                List<Integer> reservedTables = new ArrayList<>();
-
-                for (int i = 0; i < reservations.size(); i++) {
-                    Reservation reservation = reservations.get(i);
-                    if (reservation == null) {
-                        System.out.println("Null reservation at index " + i);
-                        continue;
-                    }
-                    List<Integer> tableIds = reservation.getTable();
-                    if (tableIds != null) {
+                    } catch (Exception e) {
+                        e.printStackTrace();
                         try {
-                            reservedTables.addAll(tableIds);
-                        } catch (Exception e) {
-                            System.out.println("Exception at index " + i + ": " + e);
+                            client.sendToClient("dishAddError:" + e.getMessage());
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
                         }
-                    } else {
-                        System.out.println("reservation.getTable() returned null at index " + i);
                     }
-                }
-                System.out.println("Check2");
+                } else if (command.equals("logInRequest")) {
+                    String username = payload[0].toString();
+                    String password = payload[1].toString();
 
-                Session session = sessionFactory.openSession();
-                session.beginTransaction();
-
-                // Query to get all tables
-                String hql = "FROM Tables";
-                List<Tables> allTables = session.createQuery(hql, Tables.class).list();
-
-                session.getTransaction().commit();
-                session.close();
-                System.out.println("Check3");
-
-                List<DataPoint> dataPoints = new ArrayList<>();
-
-                // For each table, create a data point
-                for (Tables table : allTables) {
-                    // Set y to 1 if the table is in the reserved list, otherwise 0
-                    int reservationStatus = reservedTables.contains(table.getId()) ? 1 : 0;
-
-                    // Create and add the data point
-                    dataPoints.add(new DataPoint(table.getId(), reservationStatus));
-                }
-                System.out.println("Check5");
-
-                responseDTO response = new responseDTO("tableMap",new Object[]{dataPoints});
-                try {
-                    client.sendToClient(response);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-
-            }
-        } else if(msg instanceof String) {
-            String msgString = msg.toString();
-            if (msgString.equals("getPendingChanges")) {
-                try (Session session = getSessionFactory().openSession()) {
-                    session.beginTransaction();
-                    List<RequestedChanges> changes = session.createQuery("FROM RequestedChanges", RequestedChanges.class).list();
-
-                    List<RequestedChangesDTO> dtoList = changes.stream().map(change -> new RequestedChangesDTO(
-                            change.getPrice(),
-                            change.getIngredients(),
-                            change.getName(),
-                            change.getPersonalPref(),
-                            change.getDish().getId()
-                    )).collect(Collectors.toList());
-
-                    responseDTO response = new responseDTO("PendingChangesResponse", new Object[]{dtoList});
-                    client.sendToClient(response);
-
-                    session.getTransaction().commit();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-            else if (msgString.equals("getMenu")) {
-                System.out.println("Server received 'getMenu' request.");
-
-                try {
                     Session session = sessionFactory.openSession();
                     session.beginTransaction();
 
-                    List<Dish> dishes = session.createQuery("FROM Dish", Dish.class).getResultList();
-                    for (Dish dish : dishes) {
-                        Hibernate.initialize(dish.getAvailablePreferences());
-                        Hibernate.initialize(dish.getRestaurantNames()); // <- This solves the LazyInitializationException
-                    }
+                    String hql = "FROM User r WHERE r.username = :givenUsername AND r.password = :givenPassword";
 
+                    Query query = session.createQuery(hql);
+                    query.setParameter("givenUsername", username);
+                    query.setParameter("givenPassword", password);
+                    User user = (User) query.uniqueResult();
+
+                    int userID = 0;
+                    String userRole = "0";
+
+                    String reply;
+                    if (user == null) {
+                        reply = "notFound";
+                    } else if (user.getLoggedin()) {
+                        reply = "alreadyLoggedin";
+                    } else {
+                        reply = "loginSuccessful";
+                        userID = user.getId();
+                        userRole = user.getRole();
+                        user.setLoggedin(true);
+                        session.update(user);
+                    }
+                    responseDTO response = new responseDTO("loginResult", new Object[]{reply, userID, userRole});
                     session.getTransaction().commit();
                     session.close();
-
-                    if (dishes.isEmpty()) {
-                        System.out.println("[ERROR] No dishes found in database.");
-                    } else {
-                        System.out.println("[DEBUG] Total Dishes in DB: " + dishes.size());
-                        for (Dish dish : dishes) {
-                            System.out.println("Dish: " + dish.getName());
-                        }
-                    }
-                    List<dishDTO> dishesDTO = DTOConverter.convertToDishDTOList(dishes);
-
-                    if (dishesDTO == null) {
-                        System.err.println("[ERROR] dishesDTO is null!");
-                    } else {
-                        System.out.println("[DEBUG] dishesDTO: " + dishesDTO);
-                    }
-
-                    responseDTO response = new responseDTO("MenuResponse", new Object[]{dishesDTO});
-                    client.sendToClient(response);
-
-
-                } catch (Exception e) {
-                    System.err.println("ERROR: Failed to fetch dishes!");
-                    e.printStackTrace();
-                }
-            } else if (msgString.equals("getRestaurants")) {
-                System.out.println("Server received 'getRestaurants' request!");
-
-                List<Restaurant> restaurantList = null;
-
-                try {
-                    SessionFactory sessionFactory = getSessionFactory();
-                    session = sessionFactory.openSession();
-                    session.beginTransaction();
-
-                    // Using Criteria API to fetch restaurants
-                    CriteriaBuilder builder = session.getCriteriaBuilder();
-                    CriteriaQuery<Restaurant> query = builder.createQuery(Restaurant.class);
-                    query.from(Restaurant.class);
-                    restaurantList = session.createQuery(query).getResultList();
-
-                    // THIS IS NEEDED FOR THE ARRAY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                    for (Restaurant restaurant : restaurantList) {
-                        Hibernate.initialize(restaurant.getOpeningHours());
-                    }
-
-                    session.getTransaction().commit();
-                } catch (Exception e) {
-                    if (session != null) {
-                        session.getTransaction().rollback();
-                    }
-                    System.err.println("ERROR: Failed to fetch restaurants from the database!");
-                    e.printStackTrace();
-                } finally {
-                    if (session != null) {
-                        session.close();
-                    }
-                }
-                // Ensure data exists before sending
-                if (restaurantList == null || restaurantList.isEmpty()) {
-                    System.out.println("No restaurants found.");
-                    return;
-                }
-                List<restaurantDTO> restaurantsDTO = DTOConverter.convertToRestaurantDTOList(restaurantList);
-
-                if (restaurantsDTO == null) {
-                    System.err.println("[ERROR] dishesDTO is null!");
-                } else {
-                    System.out.println("[DEBUG] dishesDTO: " + restaurantsDTO);
-                }
-                responseDTO response = new responseDTO("restaurants", new Object[]{restaurantsDTO});
-
-
-                if (client != null && client.isAlive()) {
                     try {
                         client.sendToClient(response);
                     } catch (IOException e) {
+                        throw new RuntimeException(e);
                     }
-                }
-            }
-            else if (msgString.startsWith("removeDish:")) {
-                try (Session session = getSessionFactory().openSession()) {
-                    session.beginTransaction();
-
-                    int dishId = Integer.parseInt(msgString.replace("removeDish:", "").trim());
-                    Dish dish = session.get(Dish.class, dishId);
-
-                    if (dish != null) {
-                        session.remove(dish);
-                        session.getTransaction().commit();
-                        System.out.println("[DEBUG] Removed dish: " + dish.getName());
-
-                        // Notify client of success
-                        responseDTO updateNotification = new responseDTO("menuUpdated", new Object[]{"Dish Removed"});
-                        sendToAllExcept(updateNotification, client);
-                    } else {
-                        System.err.println("[ERROR] Dish with ID " + dishId + " not found.");
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-            else if (msgString.startsWith("getMenuForRestaurant:")) {
-                String restaurantName = msgString.replace("getMenuForRestaurant:", "").trim();
-                System.out.println("Server received 'getMenuForRestaurant' request for: " + restaurantName);
-
-                try {
+                } else if (command.equals("logOutRequest")) {
+                    int userID = (int) payload[0];
                     Session session = sessionFactory.openSession();
                     session.beginTransaction();
 
-                    List<Dish> filteredDishes = session.createQuery("FROM Dish", Dish.class)
-                            .getResultList()
-                            .stream()
-                            .filter(d -> d.getRestaurantNames().contains(restaurantName) || d.getRestaurantNames().contains("All"))
-                            .collect(Collectors.toList());
+                    String hql = "FROM User r WHERE r.id = :givenUserID";
 
-                    List<dishDTO> dishDTOs = DTOConverter.convertToDishDTOList(filteredDishes);
-                    responseDTO response = new responseDTO("MenuForRestaurant", new Object[]{dishDTOs});
-                    client.sendToClient(response);
+                    Query query = session.createQuery(hql);
+                    query.setParameter("givenUserID", userID);
+                    User user = (User) query.uniqueResult();
 
+                    user.setLoggedin(false);
+                    session.update(user);
+
+                    String reply = "logoutSuccessful";
+
+                    responseDTO response = new responseDTO("logoutResult", new Object[]{reply});
 
                     session.getTransaction().commit();
                     session.close();
 
-
-                } catch (Exception e) {
-                    System.err.println("ERROR: Failed to fetch menu for restaurant!");
-                    e.printStackTrace();
-                }
-            } else if (msgString.startsWith("getRestaurantByName:")) {
-                String restaurantName = msgString.replace("getRestaurantByName:", "").trim();
-                System.out.println("Server received 'getRestaurantByName' request for: " + restaurantName);
-
-                Session session = sessionFactory.openSession();
-                Restaurant restaurant = null;
-
-                try {
-                    String hql = "FROM Restaurant r WHERE r.name = :restaurantName";
-                    Query<Restaurant> query = session.createQuery(hql, Restaurant.class);
-                    query.setParameter("restaurantName", restaurantName);
-
-                    restaurant = query.uniqueResult();  // Can be null if no match found
-
-                    Hibernate.initialize(restaurant.getOpeningHours());
-
-
-                } catch (Exception e) {
-                    e.printStackTrace();  // Log any errors
-                } finally {
-                    session.close();  // Ensure session is closed
-                }
-
-                if (restaurant != null) {
-                    System.out.println("[DEBUG] Got Restaurant from Database: " + restaurant);
-                } else {
-                    System.out.println("[DEBUG] No restaurant found with name: " + restaurantName);
-                }
-
-                restaurantDTO RestaurantDTO = DTOConverter.convertToRestaurantDTO(restaurant);
-
-                System.out.println("[DEBUG] converted restaurant and now sending it " + restaurant);
-
-                if (client != null && client.isAlive()) {
                     try {
-                        client.sendToClient(RestaurantDTO);
+                        client.sendToClient(response);
                     } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                } else if (command.equals("getSeatingReport")) {
+                    String month = payload[0].toString();
+                    try (Session session = getSessionFactory().openSession()) {
+                        session.beginTransaction();
+                        String monthNumber = monthNameToNumber(month);
+
+                        // Query to get reservations from the same month
+                        String hql = "FROM Reservation r WHERE SUBSTRING(r.date, 6, 2) = :month";
+                        List<Reservation> reservations = session.createQuery(hql, Reservation.class)
+                                .setParameter("month", monthNumber)
+                                .list();
+                        session.getTransaction().commit();
+                        // Assuming you already have the filtered reservations for the specific month
+                        Map<String, String> guestsPerDay = new HashMap<>();
+
+                        // Iterate through the reservations and sum up guests for each day
+                        // First create a temporary map to do the calculations
+                        Map<String, Integer> tempGuestsPerDay = new HashMap<>();
+
+                        for (Reservation reservation : reservations) {
+                            String fullDate = reservation.getDate(); // Format: "2025-04-04"
+
+                            // Extract just the day part (last 2 characters)
+                            String day = fullDate.substring(8, 10);
+
+                            int guests = reservation.getNumberOfGuests();
+
+                            // If this day already exists in the map, add to the count
+                            // Otherwise, initialize it with the current guest count
+                            tempGuestsPerDay.merge(day, guests, Integer::sum);
+                        }
+                        List<Report> seatingsReportList = new ArrayList<>();
+                        int year = LocalDate.now().getYear(); // Or extract from one of your reservations
+
+
+                        // Now convert the Integer values to String
+                        for (Map.Entry<String, Integer> entry : tempGuestsPerDay.entrySet()) {
+                            guestsPerDay.put(entry.getKey(), entry.getValue().toString());
+                        }
+
+                        // Determine the number of days in the month
+                        int daysInMonth;
+                        if (month.equals("February")) {
+                            // Check for leap year
+                            daysInMonth = Year.isLeap(year) ? 29 : 28;
+                        } else if (month.equals("April") || month.equals("June") ||
+                                month.equals("September") || month.equals("November")) {
+                            daysInMonth = 30;
+                        } else {
+                            daysInMonth = 31;
+                        }
+
+                        for (int i = 1; i <= daysInMonth; i++) {
+                            // Format day as two digits (01, 02, etc.)
+                            String dayStr = String.format("%02d", i);
+
+                            // Get the number of guests for this day, or "0" if no reservations
+                            String guestCount = guestsPerDay.getOrDefault(dayStr, "0");
+
+                            // Create a new seatingsReport object and add to the list
+                            seatingsReportList.add(new Report(dayStr, guestCount));
+                        }
+
+
+                        responseDTO response = new responseDTO("seatingReport", new Object[]{seatingsReportList});
+
+                        client.sendToClient(response);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                } else if (command.equals("getOrdersReport")) {
+                    String month = payload[0].toString();
+                    try (Session session = getSessionFactory().openSession()) {
+                        session.beginTransaction();
+                        String monthNumber = monthNameToNumber(month);
+
+                        // Query to get reservations from the same month
+                        String hql = "FROM Order o WHERE FUNCTION('MONTH', o.orderDate) = :monthNum";
+                        List<Order> orders = session.createQuery(hql, Order.class)
+                                .setParameter("monthNum", Integer.parseInt(monthNumber))
+                                .list();
+                        session.getTransaction().commit();
+
+                        // Assuming you already have the filtered reservations for the specific month
+                        Map<String, String> ordersPerDay = new HashMap<>();
+
+                        // Iterate through the reservations and sum up guests for each day
+                        // First create a temporary map to do the calculations
+                        Map<String, Integer> tempOrdersPerDay = new HashMap<>();
+
+                        for (Order order : orders) {
+                            String fullDate = order.getOrderDate().toString(); // Format: "2025-04-04"
+
+                            // Extract just the day part (last 2 characters)
+                            SimpleDateFormat sdf = new SimpleDateFormat("dd"); // "dd" gives day of month with leading zero
+                            String day = sdf.format(fullDate);
+
+                            // If this day already exists in the map, add to the count
+                            // Otherwise, initialize it with the current guest count
+                            tempOrdersPerDay.merge(day, 1, Integer::sum);
+                        }
+                        List<Report> ordersReportList = new ArrayList<>();
+                        int year = LocalDate.now().getYear(); // Or extract from one of your reservations
+
+
+                        // Now convert the Integer values to String
+                        for (Map.Entry<String, Integer> entry : tempOrdersPerDay.entrySet()) {
+                            ordersPerDay.put(entry.getKey(), entry.getValue().toString());
+                        }
+                        int daysInMonth;
+                        if (month.equals("February")) {
+                            // Check for leap year
+                            daysInMonth = Year.isLeap(year) ? 29 : 28;
+                        } else if (month.equals("April") || month.equals("June") ||
+                                month.equals("September") || month.equals("November")) {
+                            daysInMonth = 30;
+                        } else {
+                            daysInMonth = 31;
+                        }
+
+                        for (int i = 1; i <= daysInMonth; i++) {
+                            // Format day as two digits (01, 02, etc.)
+                            String dayStr = String.format("%02d", i);
+
+                            // Get the number of guests for this day, or "0" if no reservations
+                            String guestCount = ordersPerDay.getOrDefault(dayStr, "0");
+
+                            // Create a new seatingsReport object and add to the list
+                            ordersReportList.add(new Report(dayStr, guestCount));
+                        }
+
+
+                        responseDTO response = new responseDTO("ordersReport", new Object[]{ordersReportList});
+
+                        client.sendToClient(response);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                } else if (command.equals("getFeedBackReport")) {
+                    String userRole = payload[0].toString();
+                    String selectedRestaurant = payload[1].toString();
+                    List<Feedback> feedbackList = new ArrayList<>();
+                    try (Session session = getSessionFactory().openSession()) {
+                        session.beginTransaction();
+                        String hql;
+                        if (userRole.equals("restaurant manager")) {
+                            hql = "FROM Feedback r WHERE r.restaurantName = :givenRestaurant";
+                            Query<Feedback> query = session.createQuery(hql, Feedback.class);
+                            query.setParameter("givenRestaurant", selectedRestaurant);
+                            feedbackList = query.list();
+                        } else {
+                            hql = "FROM Feedback";
+                            Query<Feedback> query = session.createQuery(hql, Feedback.class);
+                            feedbackList = query.list();
+                        }
+                        session.getTransaction().commit();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    List<DataPoint> dataPoints = convertFeedbackToDataPoints(feedbackList);
+
+                    responseDTO response = new responseDTO("feedbacksReport", new Object[]{dataPoints});
+
+                    try {
+                        client.sendToClient(response);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                } else if (command.equals("getTableMap")) {
+                    List<Reservation> reservations = getCurrentReservationsWithRoundedTime();
+                    System.out.println("Check1");
+
+                    if (reservations == null) {
+                        System.out.println("reservations is null");
+                        return;
+                    }
+
+                    List<Integer> reservedTables = new ArrayList<>();
+
+                    for (int i = 0; i < reservations.size(); i++) {
+                        Reservation reservation = reservations.get(i);
+                        if (reservation == null) {
+                            System.out.println("Null reservation at index " + i);
+                            continue;
+                        }
+                        List<Integer> tableIds = reservation.getTable();
+                        if (tableIds != null) {
+                            try {
+                                reservedTables.addAll(tableIds);
+                            } catch (Exception e) {
+                                System.out.println("Exception at index " + i + ": " + e);
+                            }
+                        } else {
+                            System.out.println("reservation.getTable() returned null at index " + i);
+                        }
+                    }
+                    System.out.println("Check2");
+
+                    Session session = sessionFactory.openSession();
+                    session.beginTransaction();
+
+                    // Query to get all tables
+                    String hql = "FROM Tables";
+                    List<Tables> allTables = session.createQuery(hql, Tables.class).list();
+
+                    session.getTransaction().commit();
+                    session.close();
+                    System.out.println("Check3");
+
+                    List<DataPoint> dataPoints = new ArrayList<>();
+
+                    // For each table, create a data point
+                    for (Tables table : allTables) {
+                        // Set y to 1 if the table is in the reserved list, otherwise 0
+                        int reservationStatus = reservedTables.contains(table.getId()) ? 1 : 0;
+
+                        // Create and add the data point
+                        dataPoints.add(new DataPoint(table.getId(), reservationStatus));
+                    }
+                    System.out.println("Check5");
+
+                    responseDTO response = new responseDTO("tableMap", new Object[]{dataPoints});
+                    try {
+                        client.sendToClient(response);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                }
+            } else if (msg instanceof String) {
+                String msgString = msg.toString();
+                if (msgString.equals("getPendingChanges")) {
+                    try (Session session = getSessionFactory().openSession()) {
+                        session.beginTransaction();
+                        List<RequestedChanges> changes = session.createQuery("FROM RequestedChanges", RequestedChanges.class).list();
+
+                        List<RequestedChangesDTO> dtoList = changes.stream().map(change -> new RequestedChangesDTO(
+                                change.getPrice(),
+                                change.getIngredients(),
+                                change.getName(),
+                                change.getPersonalPref(),
+                                change.getDish().getId()
+                        )).collect(Collectors.toList());
+
+                        responseDTO response = new responseDTO("PendingChangesResponse", new Object[]{dtoList});
+                        client.sendToClient(response);
+
+                        session.getTransaction().commit();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                } else if (msgString.equals("getMenu")) {
+                    System.out.println("Server received 'getMenu' request.");
+
+                    try {
+                        Session session = sessionFactory.openSession();
+                        session.beginTransaction();
+
+                        List<Dish> dishes = session.createQuery("FROM Dish", Dish.class).getResultList();
+                        for (Dish dish : dishes) {
+                            Hibernate.initialize(dish.getAvailablePreferences());
+                            Hibernate.initialize(dish.getRestaurantNames()); // <- This solves the LazyInitializationException
+                        }
+
+                        session.getTransaction().commit();
+                        session.close();
+
+                        if (dishes.isEmpty()) {
+                            System.out.println("[ERROR] No dishes found in database.");
+                        } else {
+                            System.out.println("[DEBUG] Total Dishes in DB: " + dishes.size());
+                            for (Dish dish : dishes) {
+                                System.out.println("Dish: " + dish.getName());
+                            }
+                        }
+                        List<dishDTO> dishesDTO = DTOConverter.convertToDishDTOList(dishes);
+
+                        if (dishesDTO == null) {
+                            System.err.println("[ERROR] dishesDTO is null!");
+                        } else {
+                            System.out.println("[DEBUG] dishesDTO: " + dishesDTO);
+                        }
+
+                        responseDTO response = new responseDTO("MenuResponse", new Object[]{dishesDTO});
+                        client.sendToClient(response);
+
+
+                    } catch (Exception e) {
+                        System.err.println("ERROR: Failed to fetch dishes!");
+                        e.printStackTrace();
+                    }
+                } else if (msgString.equals("getRestaurants")) {
+                    System.out.println("Server received 'getRestaurants' request!");
+
+                    List<Restaurant> restaurantList = null;
+
+                    try {
+                        SessionFactory sessionFactory = getSessionFactory();
+                        session = sessionFactory.openSession();
+                        session.beginTransaction();
+
+                        // Using Criteria API to fetch restaurants
+                        CriteriaBuilder builder = session.getCriteriaBuilder();
+                        CriteriaQuery<Restaurant> query = builder.createQuery(Restaurant.class);
+                        query.from(Restaurant.class);
+                        restaurantList = session.createQuery(query).getResultList();
+
+                        // THIS IS NEEDED FOR THE ARRAY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                        for (Restaurant restaurant : restaurantList) {
+                            Hibernate.initialize(restaurant.getOpeningHours());
+                        }
+
+                        session.getTransaction().commit();
+                    } catch (Exception e) {
+                        if (session != null) {
+                            session.getTransaction().rollback();
+                        }
+                        System.err.println("ERROR: Failed to fetch restaurants from the database!");
+                        e.printStackTrace();
+                    } finally {
+                        if (session != null) {
+                            session.close();
+                        }
+                    }
+                    // Ensure data exists before sending
+                    if (restaurantList == null || restaurantList.isEmpty()) {
+                        System.out.println("No restaurants found.");
+                        return;
+                    }
+                    List<restaurantDTO> restaurantsDTO = DTOConverter.convertToRestaurantDTOList(restaurantList);
+
+                    if (restaurantsDTO == null) {
+                        System.err.println("[ERROR] dishesDTO is null!");
+                    } else {
+                        System.out.println("[DEBUG] dishesDTO: " + restaurantsDTO);
+                    }
+                    responseDTO response = new responseDTO("restaurants", new Object[]{restaurantsDTO});
+
+
+                    if (client != null && client.isAlive()) {
+                        try {
+                            client.sendToClient(response);
+                        } catch (IOException e) {
+                        }
+                    }
+                } else if (msgString.startsWith("removeDish:")) {
+                    try (Session session = getSessionFactory().openSession()) {
+                        session.beginTransaction();
+
+                        int dishId = Integer.parseInt(msgString.replace("removeDish:", "").trim());
+                        Dish dish = session.get(Dish.class, dishId);
+
+                        if (dish != null) {
+                            session.remove(dish);
+                            session.getTransaction().commit();
+                            System.out.println("[DEBUG] Removed dish: " + dish.getName());
+
+                            // Notify client of success
+                            responseDTO updateNotification = new responseDTO("menuUpdated", new Object[]{"Dish Removed"});
+                            sendToAllExcept(updateNotification, client);
+                        } else {
+                            System.err.println("[ERROR] Dish with ID " + dishId + " not found.");
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                } else if (msgString.startsWith("getMenuForRestaurant:")) {
+                    String restaurantName = msgString.replace("getMenuForRestaurant:", "").trim();
+                    System.out.println("Server received 'getMenuForRestaurant' request for: " + restaurantName);
+
+                    try {
+                        Session session = sessionFactory.openSession();
+                        session.beginTransaction();
+
+                        List<Dish> filteredDishes = session.createQuery("FROM Dish", Dish.class)
+                                .getResultList()
+                                .stream()
+                                .filter(d -> d.getRestaurantNames().contains(restaurantName) || d.getRestaurantNames().contains("All"))
+                                .collect(Collectors.toList());
+
+                        List<dishDTO> dishDTOs = DTOConverter.convertToDishDTOList(filteredDishes);
+                        responseDTO response = new responseDTO("MenuForRestaurant", new Object[]{dishDTOs});
+                        client.sendToClient(response);
+
+
+                        session.getTransaction().commit();
+                        session.close();
+
+
+                    } catch (Exception e) {
+                        System.err.println("ERROR: Failed to fetch menu for restaurant!");
+                        e.printStackTrace();
+                    }
+                } else if (msgString.startsWith("getRestaurantByName:")) {
+                    String restaurantName = msgString.replace("getRestaurantByName:", "").trim();
+                    System.out.println("Server received 'getRestaurantByName' request for: " + restaurantName);
+
+                    Session session = sessionFactory.openSession();
+                    Restaurant restaurant = null;
+
+                    try {
+                        String hql = "FROM Restaurant r WHERE r.name = :restaurantName";
+                        Query<Restaurant> query = session.createQuery(hql, Restaurant.class);
+                        query.setParameter("restaurantName", restaurantName);
+
+                        restaurant = query.uniqueResult();  // Can be null if no match found
+
+                        Hibernate.initialize(restaurant.getOpeningHours());
+
+
+                    } catch (Exception e) {
+                        e.printStackTrace();  // Log any errors
+                    } finally {
+                        session.close();  // Ensure session is closed
+                    }
+
+                    if (restaurant != null) {
+                        System.out.println("[DEBUG] Got Restaurant from Database: " + restaurant);
+                    } else {
+                        System.out.println("[DEBUG] No restaurant found with name: " + restaurantName);
+                    }
+
+                    restaurantDTO RestaurantDTO = DTOConverter.convertToRestaurantDTO(restaurant);
+
+                    System.out.println("[DEBUG] converted restaurant and now sending it " + restaurant);
+
+                    if (client != null && client.isAlive()) {
+                        try {
+                            client.sendToClient(RestaurantDTO);
+                        } catch (IOException e) {
+                        }
+                    }
+                } else if (msgString.startsWith("getOrdersByCustomerId:")) {
+                    String customerId = msgString.replace("getOrdersByCustomerId:", "").trim();
+
+                    try (Session session = getSessionFactory().openSession()) {
+                        session.beginTransaction();
+
+                        List<Order> orders = session.createQuery("FROM Order WHERE customerId = :id", Order.class)
+                                .setParameter("id", customerId)
+                                .getResultList();
+
+                        List<OrderSummaryDTO> summaries = orders.stream().map(order -> new OrderSummaryDTO(
+                                order.getId(),
+                                order.getCustomerName(),
+                                order.getCustomerId(),
+                                order.getPreferredDeliveryTime(),
+                                order.getAddress(),
+                                order.getTotalPrice(),
+                                order.getOrderDate()
+                        )).collect(Collectors.toList());
+
+                        responseDTO response = new responseDTO("CustomerOrdersResponse", new Object[]{summaries});
+                        client.sendToClient(response);
+
+                        session.getTransaction().commit();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                } else if (msgString.startsWith("getReservationsByCustomerId:")) {
+                    String customerId = msgString.replace("getReservationsByCustomerId:", "").trim();
+
+                    try (Session session = getSessionFactory().openSession()) {
+                        session.beginTransaction();
+
+                        List<Reservation> reservations = session.createQuery("FROM Reservation WHERE customerId = :id", Reservation.class)
+                                .setParameter("id", customerId)
+                                .getResultList();
+                        List<reservationSummaryDTO> summaries = reservations.stream().map(reservation -> new reservationSummaryDTO(
+                                reservation.getId(),
+                                new ArrayList<>(reservation.getTable()),
+                                reservation.getDate(),
+                                reservation.getTime(),
+                                reservation.getRestaurant(),
+                                reservation.getCustomerName(),
+                                reservation.getEmail(),
+                                reservation.getCreditCard(),
+                                reservation.getCustomerNumber(),
+                                reservation.getNumberOfGuests(),
+                                reservation.getCustomerId()
+                        )).collect(Collectors.toList());
+                        responseDTO response = new responseDTO("CustomerReservationsResponse", new Object[]{summaries});
+                        client.sendToClient(response);
+
+                        session.getTransaction().commit();
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 }
-            }else if (msgString.startsWith("getOrdersByCustomerId:")) {
-                String customerId = msgString.replace("getOrdersByCustomerId:", "").trim();
 
-                try (Session session = getSessionFactory().openSession()) {
-                    session.beginTransaction();
-
-                    List<Order> orders = session.createQuery("FROM Order WHERE customerId = :id", Order.class)
-                            .setParameter("id", customerId)
-                            .getResultList();
-
-                    List<OrderSummaryDTO> summaries = orders.stream().map(order -> new OrderSummaryDTO(
-                            order.getId(),
-                            order.getCustomerName(),
-                            order.getCustomerId(),
-                            order.getPreferredDeliveryTime(),
-                            order.getAddress(),
-                            order.getTotalPrice(),
-                            order.getOrderDate()
-                    )).collect(Collectors.toList());
-
-                    responseDTO response = new responseDTO("CustomerOrdersResponse", new Object[]{summaries});
-                    client.sendToClient(response);
-
-                    session.getTransaction().commit();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            } else if (msgString.startsWith("getReservationsByCustomerId:")) {
-                String customerId = msgString.replace("getReservationsByCustomerId:", "").trim();
-
-                try (Session session = getSessionFactory().openSession()) {
-                    session.beginTransaction();
-
-                    List<Reservation> reservations = session.createQuery("FROM Reservation WHERE customerId = :id", Reservation.class)
-                            .setParameter("id", customerId)
-                            .getResultList();
-                    List<reservationSummaryDTO> summaries = reservations.stream().map(reservation -> new reservationSummaryDTO(
-                            reservation.getId(),
-                            new ArrayList<>(reservation.getTable()),
-                            reservation.getDate(),
-                            reservation.getTime(),
-                            reservation.getRestaurant(),
-                            reservation.getCustomerName(),
-                            reservation.getEmail(),
-                            reservation.getCreditCard(),
-                            reservation.getCustomerNumber(),
-                            reservation.getNumberOfGuests(),
-                            reservation.getCustomerId()
-                    )).collect(Collectors.toList());
-                    responseDTO response = new responseDTO("CustomerReservationsResponse", new Object[]{summaries});
-                    client.sendToClient(response);
-
-                    session.getTransaction().commit();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-        } else if (msg instanceof OrderSubmissionDTO) {
+            } else if (msg instanceof OrderSubmissionDTO) {
                 OrderSubmissionDTO orderDTO = (OrderSubmissionDTO) msg;
                 try {
                     Session session = getSessionFactory().openSession();
@@ -1263,7 +1257,7 @@ public class MomServer extends AbstractServer {
                         ioException.printStackTrace();
                     }
                 }
-        } else if (msg instanceof OrderCancellationDTO) {
+            } else if (msg instanceof OrderCancellationDTO) {
                 OrderCancellationDTO cancelRequest = (OrderCancellationDTO) msg;
 
                 try (Session session = getSessionFactory().openSession()) {
@@ -1303,9 +1297,7 @@ public class MomServer extends AbstractServer {
                         ioException.printStackTrace();
                     }
                 }
-        }
-
-        else if (msg instanceof reservationCancellationDTO) {
+            } else if (msg instanceof reservationCancellationDTO) {
                 reservationCancellationDTO cancelRequest = (reservationCancellationDTO) msg;
 
                 try (Session session = getSessionFactory().openSession()) {
@@ -1329,16 +1321,16 @@ public class MomServer extends AbstractServer {
                     long hoursDifference = ChronoUnit.HOURS.between(now, reservationDateTime);
                     int fine;
 
-                    if(hoursDifference  >= 1)
+                    if (hoursDifference >= 1)
                         fine = 0;
                     else
-                        fine = reservation.getNumberOfGuests()*10;
+                        fine = reservation.getNumberOfGuests() * 10;
 
                     // Delete the order — cascading should handle orderItems (if mapped correctly)
                     session.delete(reservation);
                     session.getTransaction().commit();
 
-                    responseDTO responseForAll = new responseDTO("updateReservations",new Object[]{});
+                    responseDTO responseForAll = new responseDTO("updateReservations", new Object[]{});
                     sendToAllExcept(responseForAll, client);
                     client.sendToClient(new responseDTO("ReservationCancellationSuccess", new Object[]{fine}));
                 } catch (Exception e) {
@@ -1349,8 +1341,9 @@ public class MomServer extends AbstractServer {
                         ioException.printStackTrace();
                     }
                 }
-        }
+            }
 
+        }
     }
 
     private String monthNameToNumber(String month) {
