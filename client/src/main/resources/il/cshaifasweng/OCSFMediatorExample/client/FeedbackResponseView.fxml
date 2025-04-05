@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<AnchorPane xmlns:fx="http://javafx.com/fxml" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.FeedbackResponseController">
+    <VBox spacing="15" AnchorPane.topAnchor="10" AnchorPane.leftAnchor="10" AnchorPane.rightAnchor="10" AnchorPane.bottomAnchor="10" >
+
+        <Label fx:id="feedbackInfoLabel" text="Responding to feedback by: " style="-fx-font-size: 16px; -fx-font-weight: bold;" />
+
+        <Label text="Response:" />
+        <TextArea fx:id="responseTextArea" promptText="Write your response here..." prefHeight="150" wrapText="true"/>
+
+        <CheckBox fx:id="compensationCheckbox" text="Provide Compensation" />
+
+        <HBox spacing="10" alignment="CENTER_RIGHT">
+            <Button text="Back" onAction="#handleBack" />
+            <Button text="Send Response" onAction="#handleSendResponse" />
+        </HBox>
+
+    </VBox>
+</AnchorPane>

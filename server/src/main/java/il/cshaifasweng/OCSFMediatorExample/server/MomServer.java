@@ -1,6 +1,7 @@
 package il.cshaifasweng.OCSFMediatorExample.server;
 
 import il.cshaifasweng.OCSFMediatorExample.entities.DTO.*;
+import il.cshaifasweng.OCSFMediatorExample.entities.DTO.FeedbackDTO;
 import il.cshaifasweng.OCSFMediatorExample.server.SavingInSql.*;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.AbstractServer;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.ConnectionToClient;
@@ -11,7 +12,6 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Date;
@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 
-import net.bytebuddy.asm.Advice;
 import org.hibernate.*;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
@@ -230,8 +229,97 @@ public class MomServer extends AbstractServer {
             responseDTO message = (responseDTO) msg;
             String command = message.getMessage();
             Object[] payload = message.getPayload();
+            System.out.println("Received message from client: " + msg);
+
 
             //Feedback thing
+            //Review feedback, show all feedbacks
+            if ("getAllFeedbacks".equals(command)) {
+                System.out.println("Server received 'getAllFeedbacks' request.");
+
+                try {
+                    Session session = sessionFactory.openSession();
+                    session.beginTransaction();
+
+                    List<Feedback> feedbacks = session.createQuery("FROM Feedback", Feedback.class).getResultList();
+
+                    session.getTransaction().commit();
+                    session.close();
+
+                    if (feedbacks.isEmpty()) {
+                        System.out.println("[DEBUG] No feedbacks found.");
+                    } else {
+                        System.out.println("[DEBUG] Total feedbacks in DB: " + feedbacks.size());
+                    }
+
+                    List<FeedbackDTO> feedbackDTOs = DTOConverter.convertToFeedbackDTOList(feedbacks);
+
+
+                    responseDTO response = new responseDTO("getAllFeedbacks", new Object[]{feedbackDTOs});
+                    client.sendToClient(response);
+
+                } catch (Exception e) {
+                    System.err.println("ERROR: Failed to fetch feedbacks!");
+                    e.printStackTrace();
+                }
+            }
+
+            //respond to feedback (when the Customer care Review the feedback and send the response)
+
+            if ("respondToFeedback".equals(command)) {
+                System.out.println("Server received 'respondToFeedback' request.");
+
+                try {
+                    String fullName = (String) payload[0];
+                    String email = (String) payload[1];
+                    String feedbackMessage = (String) payload[2];
+                    String responseText = (String) payload[3];
+                    boolean isCompensated = (boolean) payload[4];
+
+
+                    System.out.println("Searching for feedback: " + fullName + " | " + email + " | " + feedbackMessage);
+
+                    Session session = sessionFactory.openSession();
+                    session.beginTransaction();
+
+                    String hql = "FROM Feedback f WHERE f.fullName = :name AND f.email = :email AND f.feedback = :message";
+                    Feedback feedback = session.createQuery(hql, Feedback.class)
+                            .setParameter("name", fullName)
+                            .setParameter("email", email)
+                            .setParameter("message", feedbackMessage)
+                            .uniqueResult();
+
+                    if (feedback != null) {
+                        feedback.setResponded(true);
+                        feedback.setCompensated(isCompensated);
+
+                        session.update(feedback);
+                        session.getTransaction().commit();
+
+                        System.out.println("Successfully updated feedback: " + fullName);
+
+                        // Send updated feedback list to all clients
+                        List<Feedback> updatedFeedbacks = session.createQuery("FROM Feedback", Feedback.class).getResultList();
+                        List<FeedbackDTO> updatedDTOs = DTOConverter.convertToFeedbackDTOList(updatedFeedbacks);
+
+                        responseDTO response = new responseDTO("getAllFeedbacks", new Object[]{updatedDTOs});
+                        sendToAllClients(response);
+
+                    } else {
+                        System.err.println("[ERROR] Feedback not found!");
+                        session.getTransaction().rollback();
+                    }
+
+                    session.close();
+
+                } catch (Exception e) {
+                    System.err.println("ERROR processing feedback response:");
+                    e.printStackTrace();
+                }
+            }
+
+
+            //Submit feedback
             if ("submitFeedback".equals(command)) {
                 System.out.println("Server received 'submitFeedback' request.");
 
@@ -247,7 +335,9 @@ public class MomServer extends AbstractServer {
                             feedbackDTO.isDelivery(),
                             feedbackDTO.getTableNumber(),
                             feedbackDTO.getRestaurantName(),
-                            feedbackDTO.getFeedback() // the actual feedback message
+                            feedbackDTO.getFeedback(), // the actual feedback message
+                            feedbackDTO.getCompensated(),
+                            feedbackDTO.getResponded()
                     );
 
                     session.save(feedbackEntity);

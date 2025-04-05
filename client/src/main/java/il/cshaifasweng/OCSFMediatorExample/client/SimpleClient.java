@@ -3,6 +3,7 @@ package il.cshaifasweng.OCSFMediatorExample.client;
 import il.cshaifasweng.OCSFMediatorExample.client.events.*;
 import il.cshaifasweng.OCSFMediatorExample.entities.DTO.Events.CancellationResultEvent;
 import il.cshaifasweng.OCSFMediatorExample.entities.DTO.dishDTO;
+import il.cshaifasweng.OCSFMediatorExample.entities.DTO.FeedbackDTO;
 import il.cshaifasweng.OCSFMediatorExample.entities.DTO.*;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -86,6 +87,14 @@ public class SimpleClient extends AbstractClient {
 			String message = response.getMessage();
 
 			switch (message) {
+				case"FeedbackListUpdate":
+					List<FeedbackDTO> feedbackList0 = (List<FeedbackDTO>) response.getPayload()[0];
+					EventBus.getDefault().post(feedbackList0);
+
+
+				case "getAllFeedbacks":
+					List<FeedbackDTO> feedbackList = (List<FeedbackDTO>) response.getPayload()[0];
+					EventBus.getDefault().post(feedbackList);
 				case "MenuResponse":
 				case "MenuForRestaurant":
 					List<dishDTO> dishes = (List<dishDTO>) response.getPayload()[0];

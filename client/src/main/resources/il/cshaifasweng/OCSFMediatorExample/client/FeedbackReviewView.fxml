@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="il.cshaifasweng.OCSFMediatorExample.client.FeedbackReviewController"
+            prefHeight="600.0" prefWidth="800.0">
+
+    <VBox spacing="10" AnchorPane.topAnchor="10" AnchorPane.leftAnchor="10" AnchorPane.rightAnchor="10" AnchorPane.bottomAnchor="10">
+
+        <!-- Table -->
+        <TableView fx:id="feedbackTable" prefHeight="400">
+            <columns>
+                <TableColumn fx:id="nameColumn" text="Name" prefWidth="150"/>
+                <TableColumn fx:id="emailColumn" text="Email" prefWidth="200"/>
+                <TableColumn fx:id="messageColumn" text="Feedback" prefWidth="250"/>
+                <TableColumn fx:id="deliveryColumn" text="Delivery Type" prefWidth="100"/>
+                <TableColumn fx:id="respondedColumn" text="Responded" prefWidth="100"/>
+                <TableColumn fx:id="compensatedColumn" text="Compensated" prefWidth="100"/>
+            </columns>
+        </TableView>
+
+        <!-- Filter Options -->
+        <HBox spacing="10">
+            <Label text="Filter by:"/>
+            <ComboBox fx:id="filterComboBox"/>
+            <CheckBox fx:id="compensatedFilterCheckbox" text="Compensated Only"/>
+        </HBox>
+
+        <!-- Navigation -->
+        <HBox spacing="10">
+            <Button fx:id="backButton" text="Back"/>
+        </HBox>
+
+    </VBox>
+</AnchorPane>

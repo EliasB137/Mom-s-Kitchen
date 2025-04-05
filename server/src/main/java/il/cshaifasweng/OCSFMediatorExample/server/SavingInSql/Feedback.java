@@ -8,13 +8,13 @@ import java.time.LocalDateTime;
 @Table(name = "feedback")
 public class Feedback implements Serializable {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+   @Id
+   private String cardId;
+   // @GeneratedValue(strategy = GenerationType.IDENTITY)
+   // private int id;
 
     private String fullName;
     private String email;
-    private String cardId;
     private boolean isDelivery;
     private String tableNumber;
     private String restaurantName;
@@ -22,15 +22,19 @@ public class Feedback implements Serializable {
     @Column(length = 1000)
     private String feedback;
 
+    private boolean isCompensated;
+    private boolean isResponded;
+
     private LocalDateTime submittedAt;
 
     // Required by Hibernate
     public Feedback() {
     }
 
+
     // Full constructor for manual creation
     public Feedback(String fullName, String email, String cardId, boolean isDelivery,
-                    String tableNumber, String restaurantName, String feedback) {
+                    String tableNumber, String restaurantName, String feedback, boolean isCompensated, boolean isResponded) {
         this.fullName = fullName;
         this.email = email;
         this.cardId = cardId;
@@ -39,13 +43,15 @@ public class Feedback implements Serializable {
         this.restaurantName = restaurantName;
         this.feedback = feedback;
         this.submittedAt = LocalDateTime.now(); // Automatically sets current time (to know when feedback submitted cuz we have 24h to respond)
+        this.isCompensated = isCompensated;
+        this.isResponded = isResponded;
+
+
     }
 
     // Getters and Setters
 
-    public int getId() {
-        return id;
-    }
+
 
     public String getFullName() {
         return fullName;
@@ -111,4 +117,19 @@ public class Feedback implements Serializable {
         this.submittedAt = submittedAt;
     }
 
+    public void setCompensated(boolean compensated) {
+        isCompensated = compensated;
+    }
+
+    public boolean getCompensated() {
+        return isCompensated;
+    }
+
+    public void setResponded(boolean responded) {
+        isResponded = responded;
+    }
+
+    public boolean getResponded() {
+        return isResponded;
+    }
 }

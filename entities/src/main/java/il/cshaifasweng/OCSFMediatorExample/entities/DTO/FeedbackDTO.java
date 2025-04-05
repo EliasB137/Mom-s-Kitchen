@@ -13,11 +13,14 @@ public class FeedbackDTO implements Serializable {
     private String tableNumber;           // relevant only if dine-in
     private String restaurantName;        // relevant only if delivery
     private String feedback;
+    private boolean isCompensated;
+    private boolean isResponded;
 
     public FeedbackDTO() {}
 
-    public FeedbackDTO(String fullName, String email, String cardId, boolean isDelivery,
-                       String tableNumber, String restaurantName, String feedback) {
+    public FeedbackDTO( String fullName, String email, String cardId, boolean isDelivery,
+                       String tableNumber, String restaurantName, String feedback, boolean isCompensated, boolean isResponded) {
+
         this.fullName = fullName;
         this.email = email;
         this.cardId = cardId;
@@ -25,7 +28,11 @@ public class FeedbackDTO implements Serializable {
         this.tableNumber = tableNumber;
         this.restaurantName = restaurantName;
         this.feedback = feedback;
+        this.isCompensated = isCompensated;
+        this.isResponded = isResponded;
     }
+
+
 
     public String getFullName() {
         return fullName;
@@ -81,6 +88,21 @@ public class FeedbackDTO implements Serializable {
 
     public void setFeedback(String feedback) {
         this.feedback = feedback;
+    }
+    public void setCompensated(boolean compensated) {
+        isCompensated = compensated;
+    }
+
+    public boolean getCompensated() {
+        return isCompensated;
+    }
+
+    public void setResponded(boolean responded) {
+        isResponded = responded;
+    }
+
+    public boolean getResponded() {
+        return isResponded;
     }
 }
 

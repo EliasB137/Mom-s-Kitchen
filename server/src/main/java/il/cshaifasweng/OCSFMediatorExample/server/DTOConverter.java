@@ -4,6 +4,8 @@ import il.cshaifasweng.OCSFMediatorExample.server.SavingInSql.Restaurant;
 import il.cshaifasweng.OCSFMediatorExample.entities.DTO.restaurantDTO;
 import il.cshaifasweng.OCSFMediatorExample.server.SavingInSql.Dish;
 import il.cshaifasweng.OCSFMediatorExample.entities.DTO.dishDTO;
+import il.cshaifasweng.OCSFMediatorExample.server.SavingInSql.Feedback;
+import il.cshaifasweng.OCSFMediatorExample.entities.DTO.FeedbackDTO;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -82,7 +84,31 @@ public static dishDTO convertToDishDTO(Dish dish) {
             return new ArrayList<>();
         }
     }
-    /// //////////////////////////////////////
+    /// /////////////////////////////////////////////////////////////////////////
+    /// /////////////// Feedback Converter ///////////////////////////
+    public static FeedbackDTO convertToFeedbackDTO(Feedback feedback) {
+        if (feedback == null) return null;
+
+        return new FeedbackDTO(
+                feedback.getFullName(),
+                feedback.getEmail(),
+                feedback.getCardId(),
+                feedback.isDelivery(),
+                feedback.getTableNumber(),
+                feedback.getRestaurantName(),
+                feedback.getFeedback(),
+                feedback.getCompensated(),
+                feedback.getResponded()
+        );
+    }
+
+    public static List<FeedbackDTO> convertToFeedbackDTOList(List<Feedback> feedbacks) {
+        if (feedbacks == null) return new ArrayList<>();
+
+        return feedbacks.stream()
+                .map(DTOConverter::convertToFeedbackDTO)
+                .collect(Collectors.toList());
+    }
 
 
 }

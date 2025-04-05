@@ -74,12 +74,16 @@ public class adminHomeController {
 
     @FXML
     void reviewFeedbackAction(ActionEvent event) {
-//        if(((!role.equals("costumer care")) && (!role.equals("manager")))){
-//            accesLabel.setText("You dont have access for this action.");
-//            return;
-//        }
-        SimpleClient.getClient().navigateTo("ReviewFeedbackView");
+        // Check if the role is not allowed
+        if (!role.equals("customer care") && !role.equals("manager")) {
+            accesLabel.setText("You don't have access for this action.");
+            return;
+        }
+
+        //navigate to the Feedback Review UI
+        SimpleClient.getClient().navigateTo("FeedbackReviewView");
     }
+
 
     @FXML
     void updateMenuAction(ActionEvent event) {
