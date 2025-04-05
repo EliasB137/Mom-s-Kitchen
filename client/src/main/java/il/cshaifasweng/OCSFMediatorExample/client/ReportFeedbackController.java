@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.time.Month;
 import java.util.List;
 
+import il.cshaifasweng.OCSFMediatorExample.client.events.DataPointEvent;
 import il.cshaifasweng.OCSFMediatorExample.entities.DTO.DataPoint;
 import il.cshaifasweng.OCSFMediatorExample.entities.DTO.responseDTO;
 import javafx.application.Platform;
@@ -70,7 +71,8 @@ public class ReportFeedbackController {
     }
 
     @Subscribe
-    public void loadReport(List<DataPoint> event) {
+    public void loadReport(DataPointEvent eventList) {
+        List<DataPoint> event = eventList.getPayload();
         System.out.println("EventBus triggered loadReport()!");
 
         // Handle UI updates on JavaFX Application Thread
@@ -101,7 +103,7 @@ public class ReportFeedbackController {
     @FXML
     public void backAction() {
         onClose();
-        SimpleClient.getClient().navigateTo("adminHomeView");
+        SimpleClient.getClient().navigateTo("ReportsPickView");
     }
 
     public void onClose() {

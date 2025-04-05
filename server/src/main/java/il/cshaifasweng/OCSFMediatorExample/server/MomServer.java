@@ -787,6 +787,66 @@ public class MomServer extends AbstractServer {
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
+            }else if(command.equals("getTableMap")){
+                List<Reservation> reservations = getCurrentReservationsWithRoundedTime();
+                System.out.println("Check1");
+
+                if (reservations == null) {
+                    System.out.println("reservations is null");
+                    return;
+                }
+
+                List<Integer> reservedTables = new ArrayList<>();
+
+                for (int i = 0; i < reservations.size(); i++) {
+                    Reservation reservation = reservations.get(i);
+                    if (reservation == null) {
+                        System.out.println("Null reservation at index " + i);
+                        continue;
+                    }
+                    List<Integer> tableIds = reservation.getTable();
+                    if (tableIds != null) {
+                        try {
+                            reservedTables.addAll(tableIds);
+                        } catch (Exception e) {
+                            System.out.println("Exception at index " + i + ": " + e);
+                        }
+                    } else {
+                        System.out.println("reservation.getTable() returned null at index " + i);
+                    }
+                }
+                System.out.println("Check2");
+
+                Session session = sessionFactory.openSession();
+                session.beginTransaction();
+
+                // Query to get all tables
+                String hql = "FROM Tables";
+                List<Tables> allTables = session.createQuery(hql, Tables.class).list();
+
+                session.getTransaction().commit();
+                session.close();
+                System.out.println("Check3");
+
+                List<DataPoint> dataPoints = new ArrayList<>();
+
+                // For each table, create a data point
+                for (Tables table : allTables) {
+                    // Set y to 1 if the table is in the reserved list, otherwise 0
+                    int reservationStatus = reservedTables.contains(table.getId()) ? 1 : 0;
+
+                    // Create and add the data point
+                    dataPoints.add(new DataPoint(table.getId(), reservationStatus));
+                }
+                System.out.println("Check5");
+
+                responseDTO response = new responseDTO("tableMap",new Object[]{dataPoints});
+                try {
+                    client.sendToClient(response);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
             }
         } else if(msg instanceof String) {
             String msgString = msg.toString();
@@ -1584,6 +1644,54 @@ public class MomServer extends AbstractServer {
         }
 
         return dataPoints;
+    }
+    public List<Reservation> getCurrentReservationsWithRoundedTime() {
+        // Get current date and time
+        LocalDateTime now = LocalDateTime.now();
+
+        // Extract current date
+        String currentDate = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        // Extract and round up the current time
+        LocalTime currentTime = now.toLocalTime();
+        int minute = currentTime.getMinute();
+        int roundedMinute;
+        int hour = currentTime.getHour();
+
+        // Round up to nearest 15-minute interval
+        if (minute == 0) {
+            roundedMinute = 0;
+        } else if (minute <= 15) {
+            roundedMinute = 15;
+        } else if (minute <= 30) {
+            roundedMinute = 30;
+        } else if (minute <= 45) {
+            roundedMinute = 45;
+        } else {
+            roundedMinute = 0;
+            hour = (hour + 1) % 24;  // Handle hour rollover
+        }
+
+        // Format the rounded time as string (HH:MM)
+        String roundedTimeString = String.format("%02d:%02d", hour, roundedMinute);
+
+        // Begin transaction
+        Session session = sessionFactory.openSession();
+        session.beginTransaction();
+
+        // Query to get reservations for current date and rounded time
+        String hql = "FROM Reservation r WHERE r.date = :currentDate AND r.time = :roundedTime";
+        List<Reservation> reservations = session.createQuery(hql, Reservation.class)
+                .setParameter("currentDate", currentDate)
+                .setParameter("roundedTime", roundedTimeString)
+                .list();
+        for (Reservation reservation : reservations) {
+            Hibernate.initialize(reservation.getTable());
+        }
+        session.getTransaction().commit();
+        session.close();
+
+        return reservations;
     }
 
 }

@@ -179,8 +179,8 @@ public class SimpleClient extends AbstractClient {
 					});
 					break;
 				case "feedbacksReport":
-					System.out.println("[DEBUG] Received feedbacks report broadcast.");
-					List<DataPoint> dataPoints = (List<DataPoint>) response.getPayload()[0];
+				case "tableMap":
+					DataPointEvent dataPoints = new DataPointEvent ((List<DataPoint>) response.getPayload()[0]);
 					EventBus.getDefault().post(dataPoints);
 					break;
 

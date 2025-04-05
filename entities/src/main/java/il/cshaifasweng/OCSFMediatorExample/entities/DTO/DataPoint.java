@@ -1,6 +1,7 @@
 package il.cshaifasweng.OCSFMediatorExample.entities.DTO;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 public class DataPoint  implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -19,5 +20,12 @@ public class DataPoint  implements Serializable {
 
     public int getY() {
         return y;
+    }
+    @Override
+    public String toString() {
+        return "point{" +
+                "X='" + x + '\'' +
+                ", Y=" + y +
+                '}';
     }
 }

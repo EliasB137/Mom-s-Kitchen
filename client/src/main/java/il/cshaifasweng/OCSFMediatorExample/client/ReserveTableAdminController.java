@@ -162,7 +162,7 @@ public class ReserveTableAdminController {
     @Subscribe
     public void handleNewReservations(NewReservation event) {
         searchForAvailableTimes();
-        Platform.runLater(() -> messageLabel.setText("New reservation was placed, times available may change."));
+        Platform.runLater(() -> messageLabel.setText(LocalTime.now().toString() + "times available may change."));
     }
 
     @Subscribe
