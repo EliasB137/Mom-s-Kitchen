@@ -105,21 +105,21 @@ public class FeedbackReviewController {
         }
     }
 
-    @Subscribe
-    public void onFeedbackListUpdated(responseDTO event) {
-        if (!"feedbackListUpdated".equals(event.getMessage())) return;
-
-        Object[] payload = event.getPayload();
-        if (payload.length > 0 && payload[0] instanceof List<?>) {
-            List<?> rawList = (List<?>) payload[0];
-            List<FeedbackDTO> updatedList = rawList.stream()
-                    .filter(obj -> obj instanceof FeedbackDTO)
-                    .map(obj -> (FeedbackDTO) obj)
-                    .collect(Collectors.toList());
-
-            allFeedbacks.setAll(updatedList);
-            applyFilters();
-        }
-    }
+//    @Subscribe
+//    public void onFeedbackListUpdated(responseDTO event) {
+//        if (!"feedbackListUpdated".equals(event.getMessage())) return;
+//
+//        Object[] payload = event.getPayload();
+//        if (payload.length > 0 && payload[0] instanceof List<?>) {
+//            List<?> rawList = (List<?>) payload[0];
+//            List<FeedbackDTO> updatedList = rawList.stream()
+//                    .filter(obj -> obj instanceof FeedbackDTO)
+//                    .map(obj -> (FeedbackDTO) obj)
+//                    .collect(Collectors.toList());
+//
+//            allFeedbacks.setAll(updatedList);
+//            applyFilters();
+//        }
+//    }
 
 }

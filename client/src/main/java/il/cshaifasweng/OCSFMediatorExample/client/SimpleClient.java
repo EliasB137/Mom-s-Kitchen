@@ -87,9 +87,9 @@ public class SimpleClient extends AbstractClient {
 			String message = response.getMessage();
 
 			switch (message) {
-				case"FeedbackListUpdate":
-					List<FeedbackDTO> feedbackList0 = (List<FeedbackDTO>) response.getPayload()[0];
-					EventBus.getDefault().post(feedbackList0);
+			//	case"FeedbackListUpdate":
+			//		List<FeedbackDTO> feedbackList0 = (List<FeedbackDTO>) response.getPayload()[0];
+			//		EventBus.getDefault().post(feedbackList0);
 
 
 				case "getAllFeedbacks":
