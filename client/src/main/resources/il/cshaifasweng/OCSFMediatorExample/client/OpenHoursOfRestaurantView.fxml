@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+
+<AnchorPane prefHeight="453.0" prefWidth="363.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.OpenHoursOfRestaurantController">
+   <children>
+      <TableView fx:id="tableHours" layoutX="39.0" layoutY="68.0" prefHeight="334.0" prefWidth="285.0">
+        <columns>
+          <TableColumn fx:id="dayColumn" prefWidth="134.39997100830078" text="Day" />
+          <TableColumn fx:id="hoursOpenColumn" prefWidth="151.20001220703125" text="Hours Open" />
+        </columns>
+      </TableView>
+      <Button fx:id="backButton" layoutX="16.0" layoutY="413.0" mnemonicParsing="false" onAction="#backAction" text="Back" />
+      <Label layoutX="128.0" layoutY="24.0" text="Opening Hours">
+         <font>
+            <Font size="16.0" />
+         </font>
+      </Label>
+   </children>
+</AnchorPane>

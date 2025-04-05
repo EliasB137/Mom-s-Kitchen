@@ -192,6 +192,11 @@ public class SimpleClient extends AbstractClient {
 					DataPointEvent dataPoints = new DataPointEvent ((List<DataPoint>) response.getPayload()[0]);
 					EventBus.getDefault().post(dataPoints);
 					break;
+				case"openingHours":
+					System.out.println("test");
+					List<DayWithHours> dayWithHoursList = (List<DayWithHours>) response.getPayload()[0];
+					EventBus.getDefault().post(dayWithHoursList);
+					break;
 
 				default:
 					System.out.println("[WARN] Unknown responseDTO message: " + message);

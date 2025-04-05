@@ -17,6 +17,7 @@ import javafx.scene.paint.ImagePattern;
 import javafx.geometry.Insets;
 
 
+import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.util.List;
 
@@ -24,7 +25,8 @@ public class startPageController {
 
 
 
-
+    @FXML
+    private Button openHoursOfRestaurantButton;
 
     @FXML
     private ChoiceBox<String> restaurantChoiceBox;
@@ -88,6 +90,7 @@ public class startPageController {
         adminSignInButton.setOnAction(event -> {onClose(); SimpleClient.getClient().navigateTo("adminSignInView");});
         continueButton.setOnAction(event -> handleContinue());
         exitButton.setOnAction(event -> exitApplication());
+        openHoursOfRestaurantButton.setOnAction(event -> openHoursOfRestaurantAction());
 
     }
 
@@ -152,4 +155,16 @@ public class startPageController {
         EventBus.getDefault().unregister(this);
     }
 
+
+    private void openHoursOfRestaurantAction() {
+        String selectedRestaurant = restaurantChoiceBox.getValue();
+        if (selectedRestaurant == null) {
+            showAlert("Please select a restaurant before continuing.");
+            return;
+
+        }
+        SimpleClient.setSelectedRestaurant(selectedRestaurant);
+        onClose();
+        SimpleClient.getClient().navigateTo("OpenHoursOfRestaurantView");
+    }
 }

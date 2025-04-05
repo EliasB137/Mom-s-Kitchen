@@ -26,6 +26,7 @@ public class viewReservationsController {
     @FXML private TableColumn<reservationSummaryDTO, String> dateColumn;
     @FXML private TableColumn<reservationSummaryDTO, String> numberOfGuestsColumn;
     @FXML private TableColumn<reservationSummaryDTO, Void> actionColumn;
+    @FXML private TableColumn<reservationSummaryDTO, String> restaurantColumn;
     @FXML private Label messageLabel;
 
     private ObservableList<reservationSummaryDTO> reservationList = FXCollections.observableArrayList();
@@ -38,6 +39,8 @@ public class viewReservationsController {
     public void initialize() {
         reservationIdColumn.setCellValueFactory(data -> new SimpleStringProperty(String.valueOf(data.getValue().getId())));
         numberOfGuestsColumn.setCellValueFactory(data -> new SimpleStringProperty(String.valueOf(data.getValue().getNumberOfGuests())));
+        restaurantColumn.setCellValueFactory(data -> new SimpleStringProperty(String.valueOf(data.getValue().getRestaurant())));
+
         dateColumn.setCellValueFactory(data ->
                 new SimpleStringProperty(data.getValue().getDate() + " " + data.getValue().getTime()));
 

@@ -850,7 +850,6 @@ public class MomServer extends AbstractServer {
                     }
                 } else if (command.equals("getTableMap")) {
                     List<Reservation> reservations = getCurrentReservationsWithRoundedTime();
-                    System.out.println("Check1");
 
                     if (reservations == null) {
                         System.out.println("reservations is null");
@@ -876,7 +875,6 @@ public class MomServer extends AbstractServer {
                             System.out.println("reservation.getTable() returned null at index " + i);
                         }
                     }
-                    System.out.println("Check2");
 
                     Session session = sessionFactory.openSession();
                     session.beginTransaction();
@@ -887,7 +885,6 @@ public class MomServer extends AbstractServer {
 
                     session.getTransaction().commit();
                     session.close();
-                    System.out.println("Check3");
 
                     List<DataPoint> dataPoints = new ArrayList<>();
 
@@ -899,7 +896,6 @@ public class MomServer extends AbstractServer {
                         // Create and add the data point
                         dataPoints.add(new DataPoint(table.getId(), reservationStatus));
                     }
-                    System.out.println("Check5");
 
                     responseDTO response = new responseDTO("tableMap", new Object[]{dataPoints});
                     try {
@@ -908,9 +904,51 @@ public class MomServer extends AbstractServer {
                         throw new RuntimeException(e);
                     }
 
+                } else if (command.equals("getOpeningHours")) {
+                String givenRestaurant = payload[0].toString();
+
+                Session session = sessionFactory.openSession();
+                Restaurant restaurant = null;
+                try {
+                    String hql = "FROM Restaurant r WHERE r.name = :restaurantName";
+                    Query<Restaurant> query = session.createQuery(hql, Restaurant.class);
+                    query.setParameter("restaurantName", givenRestaurant);
+
+                    restaurant = query.uniqueResult();  // Can be null if no match found
+
+                    Hibernate.initialize(restaurant.getOpeningHours());
+
+
+                } catch (Exception e) {
+                    e.printStackTrace();  // Log any errors
+                } finally {
+                    session.close();  // Ensure session is closed
+                }
+                List<DayWithHours> dayWithHoursList = new ArrayList<>();
+
+                for (String dayHours : restaurant.getOpeningHours()) {
+                    // Split the string into day and hours parts
+                    String[] parts = dayHours.split(":", 2);
+                    if (parts.length == 2) {
+                        String day = parts[0].trim();
+                        String hours = parts[1].trim();
+
+                        // Create a new DayWithHours object and add it to the list
+                        dayWithHoursList.add(new DayWithHours(day, hours));
+                    }
+                }
+                responseDTO response = new responseDTO("openingHours", new Object[]{dayWithHoursList});
+
+                try {
+                    client.sendToClient(response);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
                 }
 
-            } else if (msg instanceof String) {
+
+            }
+
+        } else if (msg instanceof String) {
                 String msgString = msg.toString();
                 if (msgString.equals("getPendingChanges")) {
                     try (Session session = getSessionFactory().openSession()) {
