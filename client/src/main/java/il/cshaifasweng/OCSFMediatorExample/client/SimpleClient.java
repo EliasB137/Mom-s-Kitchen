@@ -158,6 +158,40 @@ public class SimpleClient extends AbstractClient {
 					LogoutResultEvent logoutResultEvent = new LogoutResultEvent(logoutResult);
 					EventBus.getDefault().post(logoutResultEvent);
 					break;
+				case "PendingChangesResponse":
+					List<RequestedChangesDTO> pendingChanges = (List<RequestedChangesDTO>) response.getPayload()[0];
+					EventBus.getDefault().post(pendingChanges);
+					break;
+				case"updateReservations":
+					NewReservation newReservation = new NewReservation();
+					EventBus.getDefault().post(newReservation);
+					break;
+				case"ordersReport":
+				case"seatingReport":
+					List<Report> report = (List<Report>) response.getPayload()[0];
+					EventBus.getDefault().post(report);
+					break;
+
+				case "dishAdded":
+					String confirmationMsg = response.getPayload()[0].toString();
+					EventBus.getDefault().post("dishAdded:");
+					break;
+
+				case "dishAddError":
+					String errorMsg = response.getPayload()[0].toString();
+					EventBus.getDefault().post("dishAddError:" + errorMsg);
+					break;
+				case "menuUpdated":
+					System.out.println("[DEBUG] Received menu update broadcast.");
+					javafx.application.Platform.runLater(() -> {
+						EventBus.getDefault().post("menuUpdated");
+					});
+					break;
+				case "feedbacksReport":
+				case "tableMap":
+					DataPointEvent dataPoints = new DataPointEvent ((List<DataPoint>) response.getPayload()[0]);
+					EventBus.getDefault().post(dataPoints);
+					break;
 
 				default:
 					System.out.println("[WARN] Unknown responseDTO message: " + message);

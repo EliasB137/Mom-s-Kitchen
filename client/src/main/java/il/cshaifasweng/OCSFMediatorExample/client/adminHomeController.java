@@ -91,7 +91,7 @@ public class adminHomeController {
 //            accesLabel.setText("You dont have access for this action.");
 //            return;
 //        }
-        SimpleClient.getClient().navigateTo("UpdateMenuView");
+        SimpleClient.getClient().navigateTo("menuView");
     }
 
     @FXML
@@ -105,11 +105,11 @@ public class adminHomeController {
 
     @FXML
     void viewReportsAction(ActionEvent event) {
-        if(((!role.equals("worker")) && (!role.equals("manager")))){
-            accesLabel.setText("You dont have access for this action.");
-            return;
-        }
-        SimpleClient.getClient().navigateTo("ViewReportsView");
+//        if(((!role.equals("worker")) && (!role.equals("manager")))){
+//            accesLabel.setText("You dont have access for this action.");
+//            return;
+//        }
+        SimpleClient.getClient().navigateTo("ReportsPickView");
     }
 
     @FXML
@@ -127,9 +127,16 @@ public class adminHomeController {
                 viewMapButton.setVisible(true);
                 viewReportsButton.setVisible(true);
                 break;
-            case "manager":
+            case "restaurant manager":
                 aproveChangesButton.setVisible(true);
-                reviewFeedbackButton.setVisible(true);
+                reviewFeedbackButton.setVisible(false);
+                updateMenuButton.setVisible(false);
+                reserveTableButton.setVisible(false);
+                viewMapButton.setVisible(false);
+                viewReportsButton.setVisible(true);
+            case "chain manager":
+                aproveChangesButton.setVisible(true);
+                reviewFeedbackButton.setVisible(false);
                 updateMenuButton.setVisible(false);
                 reserveTableButton.setVisible(false);
                 viewMapButton.setVisible(false);

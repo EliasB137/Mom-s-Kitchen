@@ -31,6 +31,33 @@ public class dishDTO implements Serializable {
         this.restaurantNames = restaurantNames;
     }
 
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setIngredients(String ingredients) {
+        this.ingredients = ingredients;
+    }
+
+    public void setAvailablePreferences(List<String> availablePreferences) {
+        this.availablePreferences = availablePreferences;
+    }
+
+    public void setPrice(String price) {
+        this.price = price;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public void setDeliveryAvailable(boolean deliveryAvailable) {
+        this.deliveryAvailable = deliveryAvailable;
+    }
 
     public int getId() {
         return id;

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.ReportsPickController">
+   <children>
+      <ComboBox fx:id="restaurantComboBox" layoutX="134.0" layoutY="83.0" prefWidth="150.0" />
+      <Label fx:id="pickRestaurantLabel" layoutX="28.0" layoutY="87.0" text="Pick a restaurant :" />
+      <Button fx:id="ordersReportButton" layoutX="134.0" layoutY="125.0" mnemonicParsing="false" onAction="#ordersReportAction" prefHeight="26.0" prefWidth="150.0" text="Orders Report" />
+      <Button fx:id="seatingsReportButton" layoutX="134.0" layoutY="173.0" mnemonicParsing="false" onAction="#seatingReportAction" prefHeight="26.0" prefWidth="150.0" text="Seatings Report" />
+      <Button fx:id="feedbackReportButton" layoutX="134.0" layoutY="224.0" mnemonicParsing="false" onAction="#FeedbackReportAction" prefHeight="26.0" prefWidth="150.0" text="FeedBack Report" />
+      <Button fx:id="backButton" layoutX="28.0" layoutY="344.0" mnemonicParsing="false" onAction="#backAction" prefHeight="26.0" prefWidth="66.0" text="back" />
+      <Label layoutX="28.0" layoutY="27.0" text="Pick a report to View:">
+         <font>
+            <Font size="14.0" />
+         </font></Label>
+      <Label fx:id="noNeedToPickARestaurantLabel" layoutX="396.0" layoutY="87.0" text="No need to pick  a restaurant :" />
+      <Button fx:id="feedbackForTheChainButton" layoutX="396.0" layoutY="124.0" mnemonicParsing="false" onAction="#feedbackForTheChainAction" prefHeight="26.0" prefWidth="150.0" text="Feedback for the chain" />
+      <Label fx:id="messageLabel" layoutX="134.0" layoutY="270.0" />
+   </children>
+</AnchorPane>

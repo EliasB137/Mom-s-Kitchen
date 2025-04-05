@@ -7,11 +7,14 @@ import il.cshaifasweng.OCSFMediatorExample.server.ocsf.AbstractServer;
 import il.cshaifasweng.OCSFMediatorExample.server.ocsf.ConnectionToClient;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.Year;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Date;
@@ -21,6 +24,7 @@ import java.util.stream.Collectors;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 
+import net.bytebuddy.asm.Advice;
 import org.hibernate.*;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
@@ -80,20 +84,20 @@ public class MomServer extends AbstractServer {
                     System.out.println("No dishes found! Adding test dish...");
                     Dish dish = new Dish("Spaghetti Carbonara",
                             "Spaghetti, Eggs, Pecorino Romano cheese, pancetta, and black pepper",
-                            Arrays.asList("No Pepper", "Extra Cheese", "No tomato"), "72.00",
+                            Arrays.asList("No Pepper", "Extra Cheese", "No tomato"), "72",
                             "https://cdn.loveandlemons.com/wp-content/uploads/2024/12/caesar-salad.jpg", true, Arrays.asList("Golden Gate Bites"));
                     session.save(dish);
                     session.flush();
 
                     dish = new Dish("Caesar Salad", "Romaine lettuce, croutons, and Caesar dressing",
-                            Arrays.asList("No Pepper", "Extra Cheese", "No tomato"), "48.00",
+                            Arrays.asList("No Pepper", "Extra Cheese", "No tomato"), "48",
                             "https://cdn.loveandlemons.com/wp-content/uploads/2024/12/caesar-salad.jpg", true, Arrays.asList("All"));
 
 
                     session.save(dish);
                     session.flush();
                     dish = new Dish("test1", "Romaine lettuce, croutons, and Caesar dressing",
-                            Arrays.asList("No Pepper", "Extra Cheese", "No tomato"), "48.00",
+                            Arrays.asList("No Pepper", "Extra Cheese", "No tomato"), "48",
                             "https://cdn.loveandlemons.com/wp-content/uploads/2024/12/caesar-salad.jpg", false, Arrays.asList("All"));
                     session.save(dish);
                     session.flush();
@@ -153,16 +157,19 @@ public class MomServer extends AbstractServer {
                 session.update(restaurantAddTableTo);
 
 
-                User user = new User("manager","manager","manager");
+                User user = new User("restaurant manager","restaurant manager","restaurant manager" , "Golden Gate Bites");
                 session.save(user);
                 session.flush();
-                user = new User("worker","worker","worker");
+                user = new User("chain manager","chain manager","chain manager", "");
                 session.save(user);
                 session.flush();
-                user = new User("dietitian","dietitian","dietitian");
+                user = new User("worker","worker","worker", "");
                 session.save(user);
                 session.flush();
-                user = new User("customer care","customer care","customer care");
+                user = new User("dietitian","dietitian","dietitian", "");
+                session.save(user);
+                session.flush();
+                user = new User("customer care","customer care","customer care" , "");
                 session.save(user);
                 session.flush();
 
@@ -230,6 +237,88 @@ public class MomServer extends AbstractServer {
             String command = message.getMessage();
             Object[] payload = message.getPayload();
             System.out.println("Received message from client: " + msg);
+
+            if (message.getMessage().equals("submitPriceChangeRequest")) {
+                RequestedChangesDTO change = (RequestedChangesDTO) message.getPayload()[0];
+
+                try (Session session = getSessionFactory().openSession()) {
+                    session.beginTransaction();
+
+                    Dish dish = session.get(Dish.class, change.getDishId());
+
+                    RequestedChanges req = new RequestedChanges(
+                            change.getPrice(),
+                            change.getIngredients(),
+                            change.getName(),
+                            change.getPersonalPref(),
+                            dish  // only pass the dish object now
+                    );
+
+                    session.save(req);
+                    session.getTransaction().commit();
+                    System.out.println("[DEBUG] RequestedChanges saved successfully.");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.err.println("[ERROR] Failed to save RequestedChanges.");
+                }
+            }
+//            else if (message.getMessage().equals("defineAsChainDish")) {
+//
+//                int dishId = (int) message.getPayload()[0];
+//
+//                try (Session session = getSessionFactory().openSession()) {
+//                    session.beginTransaction();
+//
+//                    Dish dish = session.get(Dish.class, dishId);
+//                    if (dish != null) {
+//                        List<String> restaurants = dish.getRestaurantNames();
+//                        if (!restaurants.contains("All")) {
+//                            restaurants.add("All");
+//                            dish.setRestaurantNames(restaurants);
+//                            session.update(dish);
+//                            session.getTransaction().commit();
+//                            System.out.println("[DEBUG] Dish marked as chain-wide.");
+//                        } else {
+//                            System.out.println("[INFO] Dish is already chain-wide.");
+//                        }
+//                    } else {
+//                        System.err.println("[ERROR] Dish not found with ID: " + dishId);
+//                    }
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                    System.err.println("[ERROR] Failed to define dish as chain-wide.");
+//                }
+//            }
+            else if (command.equals("defineAsChainDish")) {
+                int dishId = (int) message.getPayload()[0];
+
+                try (Session session = getSessionFactory().openSession()) {
+                    session.beginTransaction();
+
+                    Dish dish = session.get(Dish.class, dishId);
+                    if (dish != null) {
+                        List<String> restaurants = dish.getRestaurantNames();
+                        if (!restaurants.contains("All")) {
+                            restaurants.add("All");
+                            dish.setRestaurantNames(restaurants);
+                            session.update(dish);
+                            session.getTransaction().commit();
+                            System.out.println("[DEBUG] Dish marked as chain-wide.");
+
+                            // Notify all other clients about the menu update
+                            responseDTO updateNotification = new responseDTO("menuUpdated", new Object[]{"Dish updated to chain-wide"});
+                            sendToAllExcept(updateNotification, client);
+                        } else {
+                            System.out.println("[INFO] Dish is already chain-wide.");
+                        }
+                    } else {
+                        System.err.println("[ERROR] Dish not found with ID: " + dishId);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.err.println("[ERROR] Failed to define dish as chain-wide.");
+                }
+            }
 
 
             //Feedback thing
@@ -321,6 +410,66 @@ public class MomServer extends AbstractServer {
 
             //Submit feedback
             if ("submitFeedback".equals(command)) {
+//            else if (command.equals("processChangeRequest")) {
+//                int dishId = (int) payload[0];
+//                boolean approved = (boolean) payload[1];
+//
+//                try (Session session = getSessionFactory().openSession()) {
+//                    session.beginTransaction();
+//                    RequestedChanges change = session.createQuery(
+//                                    "FROM RequestedChanges WHERE dish.id = :dishId", RequestedChanges.class)
+//                            .setParameter("dishId", dishId)
+//                            .uniqueResult();
+//
+//                    if (change != null) {
+//                        if (approved) {
+//                            Dish dish = change.getDish();
+//                            dish.setPrice(String.valueOf(change.getPrice()));
+//                            dish.setIngredients(change.getIngredients());
+//                            dish.setAvailablePreferences(Arrays.asList(change.getPersonalPref().split(",")));
+//                            session.update(dish);
+//                        }
+//                        session.remove(change); // Delete whether approved or rejected
+//                    }
+//
+//                    session.getTransaction().commit();
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//            }
+            else if (command.equals("processChangeRequest")) {
+                int dishId = (int) payload[0];
+                boolean approved = (boolean) payload[1];
+
+                try (Session session = getSessionFactory().openSession()) {
+                    session.beginTransaction();
+                    RequestedChanges change = session.createQuery(
+                                    "FROM RequestedChanges WHERE dish.id = :dishId", RequestedChanges.class)
+                            .setParameter("dishId", dishId)
+                            .uniqueResult();
+
+                    if (change != null) {
+                        if (approved) {
+                            Dish dish = change.getDish();
+                            dish.setPrice(String.valueOf(change.getPrice()));
+                            dish.setIngredients(change.getIngredients());
+                            dish.setAvailablePreferences(Arrays.asList(change.getPersonalPref().split(",")));
+                            session.update(dish);
+
+                            // Notify all other clients about the menu update
+                            responseDTO updateNotification = new responseDTO("menuUpdated", new Object[]{"Dish updated"});
+                            sendToAllExcept(updateNotification, client);
+                        }
+                        session.remove(change); // Delete whether approved or rejected
+                    }
+
+                    session.getTransaction().commit();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            else if ("submitFeedback".equals(command)) {
                 System.out.println("Server received 'submitFeedback' request.");
 
                 try (Session session = sessionFactory.openSession()) {
@@ -429,9 +578,11 @@ public class MomServer extends AbstractServer {
 
                 if (!result.isEmpty()) {
                     responseDTO response = new responseDTO("reservationResult",new Object[]{result});
+                    responseDTO responseForAll = new responseDTO("updateReservations",new Object[]{});
                     try {
                         client.sendToClient(response);
-                    } catch (IOException e) {
+                        sendToAllExcept(responseForAll, client);
+                   } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
                 }else {
@@ -444,7 +595,62 @@ public class MomServer extends AbstractServer {
                 }
 
 
-            } else if (command.equals("logInRequest")) {
+            }
+//            else if (command.equals("addDish")) {
+//                dishDTO dto = (dishDTO) payload[0];
+//
+//                try (Session session = getSessionFactory().openSession()) {
+//                    session.beginTransaction();
+//
+//                    Dish newDish = DTOConverter.convertToDishEntity(dto);
+//
+//                    session.save(newDish);
+//                    session.getTransaction().commit();
+//
+//                    responseDTO response = new responseDTO("dishAdded", new Object[]{"Dish added: " + newDish.getName()});
+//                    client.sendToClient(response);
+//                    System.out.println("[DEBUG] Dish added successfully: " + newDish.getName());
+//
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                    try {
+//                        client.sendToClient("dishAddError:" + e.getMessage());
+//                    } catch (IOException ex) {
+//                        ex.printStackTrace();
+//                    }
+//                }
+//            }
+            else if (command.equals("addDish")) {
+                dishDTO dto = (dishDTO) payload[0];
+
+                try (Session session = getSessionFactory().openSession()) {
+                    session.beginTransaction();
+
+                    Dish newDish = DTOConverter.convertToDishEntity(dto);
+
+                    session.save(newDish);
+                    session.getTransaction().commit();
+
+                    responseDTO response = new responseDTO("dishAdded", new Object[]{"Dish added: " + newDish.getName()});
+                    client.sendToClient(response);
+
+                    // Notify all other clients about the menu update
+                    responseDTO updateNotification = new responseDTO("menuUpdated", new Object[]{"Dish added"});
+                    sendToAllExcept(updateNotification, client);
+
+                    System.out.println("[DEBUG] Dish added successfully: " + newDish.getName());
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    try {
+                        client.sendToClient("dishAddError:" + e.getMessage());
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            }
+
+            else if (command.equals("logInRequest")) {
                 String username = payload[0].toString();
                 String password = payload[1].toString();
 
@@ -508,10 +714,260 @@ public class MomServer extends AbstractServer {
                     throw new RuntimeException(e);
                 }
 
+            }else if(command.equals("getSeatingReport")){
+                String month = payload[0].toString();
+                try (Session session = getSessionFactory().openSession()) {
+                    session.beginTransaction();
+                    String monthNumber = monthNameToNumber(month);
+
+                    // Query to get reservations from the same month
+                    String hql = "FROM Reservation r WHERE SUBSTRING(r.date, 6, 2) = :month";
+                    List<Reservation> reservations = session.createQuery(hql, Reservation.class)
+                            .setParameter("month", monthNumber)
+                            .list();
+                    session.getTransaction().commit();
+                    // Assuming you already have the filtered reservations for the specific month
+                    Map<String, String> guestsPerDay = new HashMap<>();
+
+                    // Iterate through the reservations and sum up guests for each day
+                    // First create a temporary map to do the calculations
+                    Map<String, Integer> tempGuestsPerDay = new HashMap<>();
+
+                    for (Reservation reservation : reservations) {
+                        String fullDate = reservation.getDate(); // Format: "2025-04-04"
+
+                        // Extract just the day part (last 2 characters)
+                        String day = fullDate.substring(8, 10);
+
+                        int guests = reservation.getNumberOfGuests();
+
+                        // If this day already exists in the map, add to the count
+                        // Otherwise, initialize it with the current guest count
+                        tempGuestsPerDay.merge(day, guests, Integer::sum);
+                    }
+                    List<Report> seatingsReportList = new ArrayList<>();
+                    int year = LocalDate.now().getYear(); // Or extract from one of your reservations
+
+
+                    // Now convert the Integer values to String
+                    for (Map.Entry<String, Integer> entry : tempGuestsPerDay.entrySet()) {
+                        guestsPerDay.put(entry.getKey(), entry.getValue().toString());
+                    }
+
+                    // Determine the number of days in the month
+                    int daysInMonth;
+                    if (month.equals("February")) {
+                        // Check for leap year
+                        daysInMonth = Year.isLeap(year) ? 29 : 28;
+                    } else if (month.equals("April") || month.equals("June") ||
+                            month.equals("September") || month.equals("November")) {
+                        daysInMonth = 30;
+                    } else {
+                        daysInMonth = 31;
+                    }
+
+                    for (int i = 1; i <= daysInMonth; i++) {
+                        // Format day as two digits (01, 02, etc.)
+                        String dayStr = String.format("%02d", i);
+
+                        // Get the number of guests for this day, or "0" if no reservations
+                        String guestCount = guestsPerDay.getOrDefault(dayStr, "0");
+
+                        // Create a new seatingsReport object and add to the list
+                        seatingsReportList.add(new Report(dayStr, guestCount));
+                    }
+
+
+                    responseDTO response = new responseDTO("seatingReport",new Object[]{seatingsReportList});
+
+                    client.sendToClient(response);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else if (command.equals("getOrdersReport")) {
+                String month = payload[0].toString();
+                try (Session session = getSessionFactory().openSession()) {
+                    session.beginTransaction();
+                    String monthNumber = monthNameToNumber(month);
+
+                    // Query to get reservations from the same month
+                    String hql = "FROM Order o WHERE FUNCTION('MONTH', o.orderDate) = :monthNum";
+                    List<Order> orders = session.createQuery(hql, Order.class)
+                            .setParameter("monthNum", Integer.parseInt(monthNumber))
+                            .list();
+                    session.getTransaction().commit();
+
+                    // Assuming you already have the filtered reservations for the specific month
+                    Map<String, String> ordersPerDay = new HashMap<>();
+
+                    // Iterate through the reservations and sum up guests for each day
+                    // First create a temporary map to do the calculations
+                    Map<String, Integer> tempOrdersPerDay = new HashMap<>();
+
+                    for (Order order : orders) {
+                        String fullDate = order.getOrderDate().toString(); // Format: "2025-04-04"
+
+                        // Extract just the day part (last 2 characters)
+                        SimpleDateFormat sdf = new SimpleDateFormat("dd"); // "dd" gives day of month with leading zero
+                        String day = sdf.format(fullDate);
+
+                        // If this day already exists in the map, add to the count
+                        // Otherwise, initialize it with the current guest count
+                        tempOrdersPerDay.merge(day, 1, Integer::sum);
+                    }
+                    List<Report> ordersReportList = new ArrayList<>();
+                    int year = LocalDate.now().getYear(); // Or extract from one of your reservations
+
+
+                    // Now convert the Integer values to String
+                    for (Map.Entry<String, Integer> entry : tempOrdersPerDay.entrySet()) {
+                        ordersPerDay.put(entry.getKey(), entry.getValue().toString());
+                    }
+                    int daysInMonth;
+                    if (month.equals("February")) {
+                        // Check for leap year
+                        daysInMonth = Year.isLeap(year) ? 29 : 28;
+                    } else if (month.equals("April") || month.equals("June") ||
+                            month.equals("September") || month.equals("November")) {
+                        daysInMonth = 30;
+                    } else {
+                        daysInMonth = 31;
+                    }
+
+                    for (int i = 1; i <= daysInMonth; i++) {
+                        // Format day as two digits (01, 02, etc.)
+                        String dayStr = String.format("%02d", i);
+
+                        // Get the number of guests for this day, or "0" if no reservations
+                        String guestCount = ordersPerDay.getOrDefault(dayStr, "0");
+
+                        // Create a new seatingsReport object and add to the list
+                        ordersReportList.add(new Report(dayStr, guestCount));
+                    }
+
+
+                    responseDTO response = new responseDTO("ordersReport",new Object[]{ordersReportList});
+
+                    client.sendToClient(response);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else if (command.equals("getFeedBackReport")) {
+                String userRole = payload[0].toString();
+                String selectedRestaurant = payload[1].toString();
+                List<Feedback> feedbackList = new ArrayList<>();
+                try (Session session = getSessionFactory().openSession()) {
+                    session.beginTransaction();
+                    String hql;
+                    if(userRole.equals("restaurant manager")) {
+                        hql = "FROM Feedback r WHERE r.restaurantName = :givenRestaurant";
+                        Query<Feedback> query = session.createQuery(hql, Feedback.class);
+                        query.setParameter("givenRestaurant", selectedRestaurant);
+                        feedbackList = query.list();
+                    }else {
+                        hql = "FROM Feedback";
+                        Query<Feedback> query = session.createQuery(hql, Feedback.class);
+                        feedbackList = query.list();
+                    }
+                    session.getTransaction().commit();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                List<DataPoint> dataPoints = convertFeedbackToDataPoints(feedbackList);
+
+                responseDTO response = new responseDTO("feedbacksReport",new Object[]{dataPoints});
+
+                try {
+                    client.sendToClient(response);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }else if(command.equals("getTableMap")){
+                List<Reservation> reservations = getCurrentReservationsWithRoundedTime();
+                System.out.println("Check1");
+
+                if (reservations == null) {
+                    System.out.println("reservations is null");
+                    return;
+                }
+
+                List<Integer> reservedTables = new ArrayList<>();
+
+                for (int i = 0; i < reservations.size(); i++) {
+                    Reservation reservation = reservations.get(i);
+                    if (reservation == null) {
+                        System.out.println("Null reservation at index " + i);
+                        continue;
+                    }
+                    List<Integer> tableIds = reservation.getTable();
+                    if (tableIds != null) {
+                        try {
+                            reservedTables.addAll(tableIds);
+                        } catch (Exception e) {
+                            System.out.println("Exception at index " + i + ": " + e);
+                        }
+                    } else {
+                        System.out.println("reservation.getTable() returned null at index " + i);
+                    }
+                }
+                System.out.println("Check2");
+
+                Session session = sessionFactory.openSession();
+                session.beginTransaction();
+
+                // Query to get all tables
+                String hql = "FROM Tables";
+                List<Tables> allTables = session.createQuery(hql, Tables.class).list();
+
+                session.getTransaction().commit();
+                session.close();
+                System.out.println("Check3");
+
+                List<DataPoint> dataPoints = new ArrayList<>();
+
+                // For each table, create a data point
+                for (Tables table : allTables) {
+                    // Set y to 1 if the table is in the reserved list, otherwise 0
+                    int reservationStatus = reservedTables.contains(table.getId()) ? 1 : 0;
+
+                    // Create and add the data point
+                    dataPoints.add(new DataPoint(table.getId(), reservationStatus));
+                }
+                System.out.println("Check5");
+
+                responseDTO response = new responseDTO("tableMap",new Object[]{dataPoints});
+                try {
+                    client.sendToClient(response);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
             }
         } else if(msg instanceof String) {
             String msgString = msg.toString();
-            if (msgString.equals("getMenu")) {
+            if (msgString.equals("getPendingChanges")) {
+                try (Session session = getSessionFactory().openSession()) {
+                    session.beginTransaction();
+                    List<RequestedChanges> changes = session.createQuery("FROM RequestedChanges", RequestedChanges.class).list();
+
+                    List<RequestedChangesDTO> dtoList = changes.stream().map(change -> new RequestedChangesDTO(
+                            change.getPrice(),
+                            change.getIngredients(),
+                            change.getName(),
+                            change.getPersonalPref(),
+                            change.getDish().getId()
+                    )).collect(Collectors.toList());
+
+                    responseDTO response = new responseDTO("PendingChangesResponse", new Object[]{dtoList});
+                    client.sendToClient(response);
+
+                    session.getTransaction().commit();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            else if (msgString.equals("getMenu")) {
                 System.out.println("Server received 'getMenu' request.");
 
                 try {
@@ -605,7 +1061,31 @@ public class MomServer extends AbstractServer {
                     } catch (IOException e) {
                     }
                 }
-            } else if (msgString.startsWith("getMenuForRestaurant:")) {
+            }
+            else if (msgString.startsWith("removeDish:")) {
+                try (Session session = getSessionFactory().openSession()) {
+                    session.beginTransaction();
+
+                    int dishId = Integer.parseInt(msgString.replace("removeDish:", "").trim());
+                    Dish dish = session.get(Dish.class, dishId);
+
+                    if (dish != null) {
+                        session.remove(dish);
+                        session.getTransaction().commit();
+                        System.out.println("[DEBUG] Removed dish: " + dish.getName());
+
+                        // Notify client of success
+                        responseDTO updateNotification = new responseDTO("menuUpdated", new Object[]{"Dish Removed"});
+                        sendToAllExcept(updateNotification, client);
+                    } else {
+                        System.err.println("[ERROR] Dish with ID " + dishId + " not found.");
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            else if (msgString.startsWith("getMenuForRestaurant:")) {
                 String restaurantName = msgString.replace("getMenuForRestaurant:", "").trim();
                 System.out.println("Server received 'getMenuForRestaurant' request for: " + restaurantName);
 
@@ -728,6 +1208,7 @@ public class MomServer extends AbstractServer {
                     e.printStackTrace();
                 }
             }
+
         } else if (msg instanceof OrderSubmissionDTO) {
                 OrderSubmissionDTO orderDTO = (OrderSubmissionDTO) msg;
                 try {
@@ -822,7 +1303,9 @@ public class MomServer extends AbstractServer {
                         ioException.printStackTrace();
                     }
                 }
-        } else if (msg instanceof reservationCancellationDTO) {
+        }
+
+        else if (msg instanceof reservationCancellationDTO) {
                 reservationCancellationDTO cancelRequest = (reservationCancellationDTO) msg;
 
                 try (Session session = getSessionFactory().openSession()) {
@@ -855,6 +1338,8 @@ public class MomServer extends AbstractServer {
                     session.delete(reservation);
                     session.getTransaction().commit();
 
+                    responseDTO responseForAll = new responseDTO("updateReservations",new Object[]{});
+                    sendToAllExcept(responseForAll, client);
                     client.sendToClient(new responseDTO("ReservationCancellationSuccess", new Object[]{fine}));
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -865,6 +1350,26 @@ public class MomServer extends AbstractServer {
                     }
                 }
         }
+
+    }
+
+    private String monthNameToNumber(String month) {
+        Map<String, String> monthNameToNumber = new HashMap<>();
+        monthNameToNumber.put("january", "01");
+        monthNameToNumber.put("february", "02");
+        monthNameToNumber.put("march", "03");
+        monthNameToNumber.put("april", "04");
+        monthNameToNumber.put("may", "05");
+        monthNameToNumber.put("june", "06");
+        monthNameToNumber.put("july", "07");
+        monthNameToNumber.put("august", "08");
+        monthNameToNumber.put("september", "09");
+        monthNameToNumber.put("october", "10");
+        monthNameToNumber.put("november", "11");
+        monthNameToNumber.put("december", "12");
+
+        String monthNumber = monthNameToNumber.get(month);
+        return monthNumber;
     }
 
     public static void initializeSessionFactory() throws HibernateException {
@@ -1186,6 +1691,102 @@ public class MomServer extends AbstractServer {
         session.close();
 
         return selectedTableIds;
+    }
+
+    private void sendToAllExcept(Object msg, ConnectionToClient excludeClient) {
+        // Get a list of all client connections
+        Thread[] clientThreadList = getClientConnections();
+
+        for (int i = 0; i < clientThreadList.length; i++) {
+            if (clientThreadList[i] instanceof ConnectionToClient) {
+                ConnectionToClient client = (ConnectionToClient) clientThreadList[i];
+
+                // Skip the excluded client
+                if (client.equals(excludeClient)) {
+                    continue;
+                }
+
+                // Send to this client
+                try {
+                    client.sendToClient(msg);
+                } catch (IOException e) {
+                    System.out.println("Error sending to client: " + e.getMessage());
+                }
+            }
+        }
+    }
+    private List<DataPoint> convertFeedbackToDataPoints(List<Feedback> feedbackList) {
+        // Count feedback submissions by month
+        Map<Integer, Integer> feedbackCountByMonth = new HashMap<>();
+
+        // Initialize all months with zero count
+        for (int i = 1; i <= 12; i++) {
+            feedbackCountByMonth.put(i, 0);
+        }
+
+        // Count feedback for each month
+        for (Feedback feedback : feedbackList) {
+            if (feedback.getSubmittedAt() != null) {
+                int month = feedback.getSubmittedAt().getMonthValue();
+                feedbackCountByMonth.put(month, feedbackCountByMonth.get(month) + 1);
+            }
+        }
+
+        // Convert the map to a list of DataPoints
+        List<DataPoint> dataPoints = new ArrayList<>();
+        for (int month = 1; month <= 12; month++) {
+            dataPoints.add(new DataPoint(month, feedbackCountByMonth.get(month)));
+        }
+
+        return dataPoints;
+    }
+    public List<Reservation> getCurrentReservationsWithRoundedTime() {
+        // Get current date and time
+        LocalDateTime now = LocalDateTime.now();
+
+        // Extract current date
+        String currentDate = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        // Extract and round up the current time
+        LocalTime currentTime = now.toLocalTime();
+        int minute = currentTime.getMinute();
+        int roundedMinute;
+        int hour = currentTime.getHour();
+
+        // Round up to nearest 15-minute interval
+        if (minute == 0) {
+            roundedMinute = 0;
+        } else if (minute <= 15) {
+            roundedMinute = 15;
+        } else if (minute <= 30) {
+            roundedMinute = 30;
+        } else if (minute <= 45) {
+            roundedMinute = 45;
+        } else {
+            roundedMinute = 0;
+            hour = (hour + 1) % 24;  // Handle hour rollover
+        }
+
+        // Format the rounded time as string (HH:MM)
+        String roundedTimeString = String.format("%02d:%02d", hour, roundedMinute);
+
+        // Begin transaction
+        Session session = sessionFactory.openSession();
+        session.beginTransaction();
+
+        // Query to get reservations for current date and rounded time
+        String hql = "FROM Reservation r WHERE r.date = :currentDate AND r.time = :roundedTime";
+        List<Reservation> reservations = session.createQuery(hql, Reservation.class)
+                .setParameter("currentDate", currentDate)
+                .setParameter("roundedTime", roundedTimeString)
+                .list();
+        for (Reservation reservation : reservations) {
+            Hibernate.initialize(reservation.getTable());
+        }
+        session.getTransaction().commit();
+        session.close();
+
+        return reservations;
     }
 
 }

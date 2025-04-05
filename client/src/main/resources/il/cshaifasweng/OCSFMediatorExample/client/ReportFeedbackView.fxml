@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane prefHeight="445.0" prefWidth="630.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.ReportFeedbackController">
+   <children>
+      <Button fx:id="backButton" layoutX="14.0" layoutY="396.0" mnemonicParsing="false" onAction="#backAction" text="Back" />
+       <LineChart fx:id="feedbackChart" layoutX="50.0" layoutY="25.0" prefHeight="350.0" prefWidth="500.0" title="Feedback by Month">
+           <xAxis>
+               <NumberAxis label="Month" fx:id="xAxis" />
+           </xAxis>
+           <yAxis>
+               <NumberAxis fx:id="yAxis" label="Number of Feedbacks" lowerBound="0" tickUnit="10" upperBound="50" />
+           </yAxis>
+       </LineChart>
+   </children>
+</AnchorPane>

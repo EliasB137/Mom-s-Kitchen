@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
+
+<VBox spacing="15" alignment="CENTER" prefWidth="600" prefHeight="650" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.AddDishController">
+    <padding>
+        <Insets top="20" right="20" bottom="20" left="20"/>
+    </padding>
+
+    <Label text="Add New Dish" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+
+    <GridPane vgap="10" hgap="10">
+        <columnConstraints>
+            <ColumnConstraints hgrow="NEVER" minWidth="100" prefWidth="150"/>
+            <ColumnConstraints hgrow="ALWAYS" minWidth="200" prefWidth="350"/>
+        </columnConstraints>
+
+        <!-- Name field -->
+        <Label text="Dish Name:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+        <TextField fx:id="nameField" promptText="Enter dish name" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+        <!-- Ingredients field -->
+        <Label text="Ingredients:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+        <TextArea fx:id="ingredientsArea" promptText="Enter ingredients (comma separated)" wrapText="true" prefHeight="80" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+        <!-- Price field -->
+        <Label text="Price:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+        <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="2">
+            <TextField fx:id="priceField" promptText="Enter price"/>
+            <Label>
+                <text>$</text>
+            </Label>
+        </HBox>
+
+        <!-- Delivery option -->
+        <Label text="Delivery Available:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+        <CheckBox fx:id="deliveryCheckbox" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+
+        <!-- Restaurant selection -->
+        <Label text="Restaurants:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+        <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="4">
+            <ListView fx:id="restaurantListView" prefHeight="100"/>
+            <HBox spacing="5">
+                <TextField fx:id="restaurantField" promptText="Add restaurant" HBox.hgrow="ALWAYS"/>
+                <Button fx:id="addRestaurantButton" text="Add"/>
+            </HBox>
+        </VBox>
+
+        <!-- Dietary Preferences -->
+        <Label text="Dietary Preferences:" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
+        <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="5">
+            <ListView fx:id="preferencesListView" prefHeight="100"/>
+            <HBox spacing="5">
+                <TextField fx:id="preferenceField" promptText="Add preference (e.g., Vegan, Low-carb)" HBox.hgrow="ALWAYS"/>
+                <Button fx:id="addPreferenceButton" text="Add"/>
+            </HBox>
+        </VBox>
+
+        <!-- Image URL field -->
+        <Label text="Image URL:" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
+        <TextField fx:id="imageUrlField" promptText="Enter image URL" GridPane.columnIndex="1" GridPane.rowIndex="6"/>
+    </GridPane>
+
+    <HBox spacing="10" alignment="CENTER">
+        <Button fx:id="saveButton" text="Save Dish" style="-fx-background-color: #4CAF50; -fx-text-fill: white;"/>
+        <Button fx:id="cancelButton" text="Cancel"/>
+    </HBox>
+</VBox>

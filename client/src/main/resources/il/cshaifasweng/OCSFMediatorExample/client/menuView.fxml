@@ -7,10 +7,12 @@
 <VBox spacing="15" alignment="CENTER" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.menuController">
     <Label text="Menu" style="-fx-font-size: 16px;"/>
 
-    <HBox spacing="10">
+    <HBox spacing="10" alignment="CENTER">
         <ChoiceBox fx:id="searchCategoryChoiceBox"/>
         <TextField fx:id="searchTextField" promptText="Search..."/>
         <Button fx:id="searchButton" text="Search"/>
+        <Region HBox.hgrow="ALWAYS" /> <!-- Spacer -->
+        <Button fx:id="addDishButton" text="Add New Dish" visible="false"/> <!-- Hidden by default, shown for dietitians -->
     </HBox>
 
     <TableView fx:id="menuTableView">
@@ -19,6 +21,7 @@
             <TableColumn fx:id="ingredientsColumn" text="Ingredients"/>
             <TableColumn fx:id="priceColumn" text="Price"/>
             <TableColumn fx:id="deliveryColumn" text="Delivery"/>
+            <TableColumn fx:id="actionsColumn" text="Actions"/>
         </columns>
     </TableView>
 

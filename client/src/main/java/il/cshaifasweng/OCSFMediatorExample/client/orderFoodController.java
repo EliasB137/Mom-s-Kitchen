@@ -45,8 +45,9 @@ public class orderFoodController {
 
         menuTableView.setItems(dishList);
 
-        backButton.setOnAction(event -> SimpleClient.getClient().navigateTo("customerHomeView"));
+        backButton.setOnAction(event -> {onClose(); SimpleClient.getClient().navigateTo("customerHomeView");});
         viewCartButton.setOnAction(event -> {
+            onClose();
             Object controller = SimpleClient.getClient().navigateTo("cartView");
             if (controller instanceof cartController) {
                 ((cartController) controller).refreshCart();
@@ -64,6 +65,7 @@ public class orderFoodController {
                 dishDTO selectedItem = menuTableView.getSelectionModel().getSelectedItem();
                 if (selectedItem != null) {
                     SimpleClient.setSelectedDish(selectedItem); // You need to add this method
+                    onClose();
                     SimpleClient.getClient().navigateTo("dishView");
                 }
             }
@@ -88,6 +90,13 @@ public class orderFoodController {
         } catch (Exception e) {
             System.err.println("Failed to request menu.");
             e.printStackTrace();
+        }
+    }
+    @Subscribe
+    public void onMenuUpdated(String message) {
+        if ("menuUpdated".equals(message)) {
+            System.out.println("[DEBUG] Reloading menu after update...");
+            requestMenuData();  // Already implemented method to refresh the menu
         }
     }
 
@@ -146,6 +155,9 @@ public class orderFoodController {
         }).collect(Collectors.toList());
 
         menuTableView.setItems(FXCollections.observableArrayList(filtered));
+    }
+    public void onClose() {
+        EventBus.getDefault().unregister(this);
     }
 
 }

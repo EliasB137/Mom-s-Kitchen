@@ -3,12 +3,17 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
 
 <AnchorPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="il.cshaifasweng.OCSFMediatorExample.client.dishViewController"
             prefWidth="600" prefHeight="600">
 
     <VBox alignment="CENTER" spacing="15" layoutX="50" layoutY="20" prefWidth="500" AnchorPane.leftAnchor="50" AnchorPane.rightAnchor="50">
+        <padding>
+            <Insets top="20" right="20" bottom="20" left="20"/>
+        </padding>
+
         <Label fx:id="dishNameLabel" style="-fx-font-size: 24px; -fx-font-weight: bold;" />
         <ImageView fx:id="dishImageView" fitWidth="300" fitHeight="200" preserveRatio="true" />
 
@@ -16,17 +21,37 @@
         <Label fx:id="dishPriceLabel" />
         <Label fx:id="dishDeliveryLabel" />
 
-        <Label text="Select Preferences:" style="-fx-font-weight: bold;" />
+        <Separator />
+
+        <Label fx:id="selectPreferencesLabel" text="Select Preferences:" style="-fx-font-weight: bold;" />
+
         <VBox fx:id="preferencesVBox" spacing="5" />
 
-        <HBox spacing="10" alignment="CENTER">
+        <HBox fx:id="spinnerbox" visible="true" managed="true" spacing="10" alignment="CENTER">
             <Label text="Quantity:" />
-            <Spinner fx:id="quantitySpinner" prefWidth="80"/>
+            <Spinner fx:id="quantitySpinner" prefWidth="80" editable="true"/>
         </HBox>
 
         <HBox spacing="15" alignment="CENTER">
             <Button fx:id="addToCartButton" text="Add to Cart" />
             <Button fx:id="backButton" text="Back to Menu" />
         </HBox>
+
+        <Separator />
+
+        <!-- Dietitian edit section - initially hidden -->
+        <VBox fx:id="dietitianEditBox" visible="false" managed="false" spacing="10">
+            <Label text="Edit Dish Information:" style="-fx-font-weight: bold;" />
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="Price:" prefWidth="80" />
+                <TextField fx:id="priceField" promptText="Enter new price"/>
+            </HBox>
+            <Label text="Ingredients:" />
+            <TextArea fx:id="ingredientsArea" promptText="Edit ingredients" prefHeight="100"/>
+            <HBox spacing="10" alignment="CENTER">
+                <Button fx:id="saveChangesButton" text="Save Changes"/>
+                <Button fx:id="requestChainButton" text="Define as Chain Dish"/>
+            </HBox>
+        </VBox>
     </VBox>
 </AnchorPane>
