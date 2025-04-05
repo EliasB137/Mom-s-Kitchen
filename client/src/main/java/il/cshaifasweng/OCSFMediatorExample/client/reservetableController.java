@@ -12,6 +12,7 @@ import org.greenrobot.eventbus.Subscribe;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,6 +47,13 @@ public class reservetableController {
 
     @FXML
     void continueBtnPressed(ActionEvent event) {
+        LocalDate today = LocalDate.now();
+        LocalDate selectedDate = datePicker.getValue();
+        String timeString = timeComboBox.getValue();
+        if(timeString.equals("closed")){
+            Platform.runLater(() -> fieldsNotFilled.setText("Restaurant is closed!"));
+            return;
+        }
         if (datePicker.getValue() == null) {
             System.out.println("Date is null");
             Platform.runLater(() -> fieldsNotFilled.setText("Fields not filled(Date)"));
@@ -66,9 +74,19 @@ public class reservetableController {
             Platform.runLater(() -> fieldsNotFilled.setText("Fields not filled(number of guests)"));
             return;
         }
-        if (datePicker.getValue().isBefore(LocalDate.now())) {
+        if (selectedDate.isBefore(today)) {
             Platform.runLater(() -> fieldsNotFilled.setText("Please select a future date for reservation."));
             return;
+        }
+        if (selectedDate.isEqual(today)) {
+            DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+            LocalTime selectedTime = LocalTime.parse(timeString, timeFormatter);
+            LocalTime now = LocalTime.now();
+
+            if (selectedTime.isBefore(now)) {
+                Platform.runLater(() -> fieldsNotFilled.setText("Please select a future time for today."));
+                return;
+            }
         }
         Platform.runLater(() -> fieldsNotFilled.setText(""));
         try {

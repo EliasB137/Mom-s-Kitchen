@@ -128,7 +128,7 @@ public class adminHomeController {
                 viewReportsButton.setVisible(true);
                 break;
             case "restaurant manager":
-                aproveChangesButton.setVisible(true);
+                aproveChangesButton.setVisible(false);
                 reviewFeedbackButton.setVisible(false);
                 updateMenuButton.setVisible(false);
                 reserveTableButton.setVisible(false);

@@ -141,8 +141,15 @@ public class reservetableconfirmController {
         Platform.runLater(() -> {
             if(event.getMessage().equals("failed"))
                 confirm_Label.setText("The reservation failed :( Please try again");
-            else
+            else{
                 confirm_Label.setText("The reservation is saved :) Thank you!");
+                NameTextField.clear();
+                NumberTextField.clear();
+                CCTextField.clear();
+                emailTextField.clear();
+                IDTextField.clear();
+                comboBox_id.getSelectionModel().clearSelection();
+            }
         });
     }
 
