@@ -264,33 +264,7 @@ public class MomServer extends AbstractServer {
                     System.err.println("[ERROR] Failed to save RequestedChanges.");
                 }
             }
-//            else if (message.getMessage().equals("defineAsChainDish")) {
-//
-//                int dishId = (int) message.getPayload()[0];
-//
-//                try (Session session = getSessionFactory().openSession()) {
-//                    session.beginTransaction();
-//
-//                    Dish dish = session.get(Dish.class, dishId);
-//                    if (dish != null) {
-//                        List<String> restaurants = dish.getRestaurantNames();
-//                        if (!restaurants.contains("All")) {
-//                            restaurants.add("All");
-//                            dish.setRestaurantNames(restaurants);
-//                            session.update(dish);
-//                            session.getTransaction().commit();
-//                            System.out.println("[DEBUG] Dish marked as chain-wide.");
-//                        } else {
-//                            System.out.println("[INFO] Dish is already chain-wide.");
-//                        }
-//                    } else {
-//                        System.err.println("[ERROR] Dish not found with ID: " + dishId);
-//                    }
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                    System.err.println("[ERROR] Failed to define dish as chain-wide.");
-//                }
-//            }
+
             else if (command.equals("defineAsChainDish")) {
                 int dishId = (int) message.getPayload()[0];
 
@@ -325,7 +299,7 @@ public class MomServer extends AbstractServer {
 
             //Feedback thing
             //Review feedback, show all feedbacks
-            if ("getAllFeedbacks".equals(command)) {
+            else if ("getAllFeedbacks".equals(command)) {
                 System.out.println("Server received 'getAllFeedbacks' request.");
 
                 try {
@@ -357,7 +331,7 @@ public class MomServer extends AbstractServer {
 
             //respond to feedback (when the Customer care Review the feedback and send the response)
 
-            if ("respondToFeedback".equals(command)) {
+            else if ("respondToFeedback".equals(command)) {
                 System.out.println("Server received 'respondToFeedback' request.");
 
                 try {
@@ -411,36 +385,7 @@ public class MomServer extends AbstractServer {
 
 
             //Submit feedback
-            if ("submitFeedback".equals(command)) {
-//            else if (command.equals("processChangeRequest")) {
-//                int dishId = (int) payload[0];
-//                boolean approved = (boolean) payload[1];
-//
-//                try (Session session = getSessionFactory().openSession()) {
-//                    session.beginTransaction();
-//                    RequestedChanges change = session.createQuery(
-//                                    "FROM RequestedChanges WHERE dish.id = :dishId", RequestedChanges.class)
-//                            .setParameter("dishId", dishId)
-//                            .uniqueResult();
-//
-//                    if (change != null) {
-//                        if (approved) {
-//                            Dish dish = change.getDish();
-//                            dish.setPrice(String.valueOf(change.getPrice()));
-//                            dish.setIngredients(change.getIngredients());
-//                            dish.setAvailablePreferences(Arrays.asList(change.getPersonalPref().split(",")));
-//                            session.update(dish);
-//                        }
-//                        session.remove(change); // Delete whether approved or rejected
-//                    }
-//
-//                    session.getTransaction().commit();
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//            }
-
-                } else if ("submitFeedback".equals(command)) {
+            else if ("submitFeedback".equals(command)) {
                     System.out.println("Server received 'submitFeedback' request.");
 
                     try (Session session = sessionFactory.openSession()) {
@@ -500,8 +445,9 @@ public class MomServer extends AbstractServer {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+            }
 
-                if (command.equals("getHours")) {
+            else if (command.equals("getHours")) {
                     System.out.println("[DEBUG] Command getHours ");
 
                     LocalDate date = (LocalDate) payload[0];
@@ -594,33 +540,8 @@ public class MomServer extends AbstractServer {
                             throw new RuntimeException(e);
                         }
                     }
-
-
                 }
-//            else if (command.equals("addDish")) {
-//                dishDTO dto = (dishDTO) payload[0];
-//
-//                try (Session session = getSessionFactory().openSession()) {
-//                    session.beginTransaction();
-//
-//                    Dish newDish = DTOConverter.convertToDishEntity(dto);
-//
-//                    session.save(newDish);
-//                    session.getTransaction().commit();
-//
-//                    responseDTO response = new responseDTO("dishAdded", new Object[]{"Dish added: " + newDish.getName()});
-//                    client.sendToClient(response);
-//                    System.out.println("[DEBUG] Dish added successfully: " + newDish.getName());
-//
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                    try {
-//                        client.sendToClient("dishAddError:" + e.getMessage());
-//                    } catch (IOException ex) {
-//                        ex.printStackTrace();
-//                    }
-//                }
-//            }
+
                 else if (command.equals("addDish")) {
                     dishDTO dto = (dishDTO) payload[0];
 
@@ -942,6 +863,7 @@ public class MomServer extends AbstractServer {
                     }
 
                 }
+
             } else if (msg instanceof String) {
                 String msgString = msg.toString();
                 if (msgString.equals("getPendingChanges")) {
@@ -1344,7 +1266,6 @@ public class MomServer extends AbstractServer {
             }
 
         }
-    }
 
     private String monthNameToNumber(String month) {
         Map<String, String> monthNameToNumber = new HashMap<>();
