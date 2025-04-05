@@ -81,20 +81,20 @@ public class MomServer extends AbstractServer {
                     System.out.println("No dishes found! Adding test dish...");
                     Dish dish = new Dish("Spaghetti Carbonara",
                             "Spaghetti, Eggs, Pecorino Romano cheese, pancetta, and black pepper",
-                            Arrays.asList("No Pepper", "Extra Cheese", "No tomato"), "72.00",
+                            Arrays.asList("No Pepper", "Extra Cheese", "No tomato"), "72",
                             "https://cdn.loveandlemons.com/wp-content/uploads/2024/12/caesar-salad.jpg", true, Arrays.asList("Golden Gate Bites"));
                     session.save(dish);
                     session.flush();
 
                     dish = new Dish("Caesar Salad", "Romaine lettuce, croutons, and Caesar dressing",
-                            Arrays.asList("No Pepper", "Extra Cheese", "No tomato"), "48.00",
+                            Arrays.asList("No Pepper", "Extra Cheese", "No tomato"), "48",
                             "https://cdn.loveandlemons.com/wp-content/uploads/2024/12/caesar-salad.jpg", true, Arrays.asList("All"));
 
 
                     session.save(dish);
                     session.flush();
                     dish = new Dish("test1", "Romaine lettuce, croutons, and Caesar dressing",
-                            Arrays.asList("No Pepper", "Extra Cheese", "No tomato"), "48.00",
+                            Arrays.asList("No Pepper", "Extra Cheese", "No tomato"), "48",
                             "https://cdn.loveandlemons.com/wp-content/uploads/2024/12/caesar-salad.jpg", false, Arrays.asList("All"));
                     session.save(dish);
                     session.flush();

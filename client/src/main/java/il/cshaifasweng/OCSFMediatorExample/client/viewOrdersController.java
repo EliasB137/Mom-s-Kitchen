@@ -126,7 +126,7 @@ public class viewOrdersController {
     @FXML
     public void handleBack() {
         onClose();
-        SimpleClient.getClient().navigateTo("customerHomeView");
+        SimpleClient.getClient().navigateTo("startPageView");
     }
     public void displayMessage(String msg) {
         messageLabel.setText(msg);
