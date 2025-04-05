@@ -153,7 +153,7 @@ public class SimpleClient extends AbstractClient {
 					List<RequestedChangesDTO> pendingChanges = (List<RequestedChangesDTO>) response.getPayload()[0];
 					EventBus.getDefault().post(pendingChanges);
 					break;
-				case"newReservationWasPlaced":
+				case"updateReservations":
 					NewReservation newReservation = new NewReservation();
 					EventBus.getDefault().post(newReservation);
 					break;
@@ -177,6 +177,11 @@ public class SimpleClient extends AbstractClient {
 					javafx.application.Platform.runLater(() -> {
 						EventBus.getDefault().post("menuUpdated");
 					});
+					break;
+				case "feedbacksReport":
+					System.out.println("[DEBUG] Received feedbacks report broadcast.");
+					List<DataPoint> dataPoints = (List<DataPoint>) response.getPayload()[0];
+					EventBus.getDefault().post(dataPoints);
 					break;
 
 				default:

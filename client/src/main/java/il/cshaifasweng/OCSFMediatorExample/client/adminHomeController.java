@@ -123,9 +123,16 @@ public class adminHomeController {
                 viewMapButton.setVisible(true);
                 viewReportsButton.setVisible(true);
                 break;
-            case "manager":
+            case "restaurant manager":
                 aproveChangesButton.setVisible(true);
-                reviewFeedbackButton.setVisible(true);
+                reviewFeedbackButton.setVisible(false);
+                updateMenuButton.setVisible(false);
+                reserveTableButton.setVisible(false);
+                viewMapButton.setVisible(false);
+                viewReportsButton.setVisible(true);
+            case "chain manager":
+                aproveChangesButton.setVisible(true);
+                reviewFeedbackButton.setVisible(false);
                 updateMenuButton.setVisible(false);
                 reserveTableButton.setVisible(false);
                 viewMapButton.setVisible(false);

@@ -6,7 +6,6 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-
 <AnchorPane prefHeight="468.0" prefWidth="711.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="il.cshaifasweng.OCSFMediatorExample.client.adminHomeController">
    <children>
       <VBox layoutX="231.0" prefHeight="366.0" prefWidth="214.0">
@@ -17,8 +16,8 @@
                </font>
             </Label>
             <Button fx:id="viewReportsButton" mnemonicParsing="false" onAction="#viewReportsAction" prefHeight="60.0" prefWidth="214.0" text="View Reports" />
-            <Button fx:id="reviewFeedbackButton" mnemonicParsing="false" onAction="#reviewFeedbackAction" prefHeight="60.0" prefWidth="214.0" text="Review Feedback" />
             <Button fx:id="aproveChangesButton" mnemonicParsing="false" onAction="#approveChangesAction" prefHeight="60.0" prefWidth="214.0" text="Aprove Changes" />
+            <Button fx:id="reviewFeedbackButton" mnemonicParsing="false" onAction="#reviewFeedbackAction" prefHeight="60.0" prefWidth="214.0" text="Review Feedback" />
             <Button fx:id="updateMenuButton" mnemonicParsing="false" onAction="#updateMenuAction" prefHeight="60.0" prefWidth="214.0" text="Update Menu" />
          </children>
       </VBox>

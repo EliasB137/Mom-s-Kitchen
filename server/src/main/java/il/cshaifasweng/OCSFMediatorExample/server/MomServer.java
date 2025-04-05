@@ -154,16 +154,19 @@ public class MomServer extends AbstractServer {
                 session.update(restaurantAddTableTo);
 
 
-                User user = new User("manager","manager","manager");
+                User user = new User("restaurant manager","restaurant manager","restaurant manager" , "Golden Gate Bites");
                 session.save(user);
                 session.flush();
-                user = new User("worker","worker","worker");
+                user = new User("chain manager","chain manager","chain manager", "");
                 session.save(user);
                 session.flush();
-                user = new User("dietitian","dietitian","dietitian");
+                user = new User("worker","worker","worker", "");
                 session.save(user);
                 session.flush();
-                user = new User("customer care","customer care","customer care");
+                user = new User("dietitian","dietitian","dietitian", "");
+                session.save(user);
+                session.flush();
+                user = new User("customer care","customer care","customer care" , "");
                 session.save(user);
                 session.flush();
 
@@ -480,7 +483,7 @@ public class MomServer extends AbstractServer {
 
                 if (!result.isEmpty()) {
                     responseDTO response = new responseDTO("reservationResult",new Object[]{result});
-                    responseDTO responseForAll = new responseDTO("newReservationWasPlaced",new Object[]{});
+                    responseDTO responseForAll = new responseDTO("updateReservations",new Object[]{});
                     try {
                         client.sendToClient(response);
                         sendToAllExcept(responseForAll, client);
@@ -753,6 +756,36 @@ public class MomServer extends AbstractServer {
                     client.sendToClient(response);
                 } catch (Exception e) {
                     e.printStackTrace();
+                }
+            } else if (command.equals("getFeedBackReport")) {
+                String userRole = payload[0].toString();
+                String selectedRestaurant = payload[1].toString();
+                List<Feedback> feedbackList = new ArrayList<>();
+                try (Session session = getSessionFactory().openSession()) {
+                    session.beginTransaction();
+                    String hql;
+                    if(userRole.equals("restaurant manager")) {
+                        hql = "FROM Feedback r WHERE r.restaurantName = :givenRestaurant";
+                        Query<Feedback> query = session.createQuery(hql, Feedback.class);
+                        query.setParameter("givenRestaurant", selectedRestaurant);
+                        feedbackList = query.list();
+                    }else {
+                        hql = "FROM Feedback";
+                        Query<Feedback> query = session.createQuery(hql, Feedback.class);
+                        feedbackList = query.list();
+                    }
+                    session.getTransaction().commit();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                List<DataPoint> dataPoints = convertFeedbackToDataPoints(feedbackList);
+
+                responseDTO response = new responseDTO("feedbacksReport",new Object[]{dataPoints});
+
+                try {
+                    client.sendToClient(response);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
                 }
             }
         } else if(msg instanceof String) {
@@ -1150,6 +1183,8 @@ public class MomServer extends AbstractServer {
                     session.delete(reservation);
                     session.getTransaction().commit();
 
+                    responseDTO responseForAll = new responseDTO("updateReservations",new Object[]{});
+                    sendToAllExcept(responseForAll, client);
                     client.sendToClient(new responseDTO("ReservationCancellationSuccess", new Object[]{fine}));
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -1524,6 +1559,31 @@ public class MomServer extends AbstractServer {
                 }
             }
         }
+    }
+    private List<DataPoint> convertFeedbackToDataPoints(List<Feedback> feedbackList) {
+        // Count feedback submissions by month
+        Map<Integer, Integer> feedbackCountByMonth = new HashMap<>();
+
+        // Initialize all months with zero count
+        for (int i = 1; i <= 12; i++) {
+            feedbackCountByMonth.put(i, 0);
+        }
+
+        // Count feedback for each month
+        for (Feedback feedback : feedbackList) {
+            if (feedback.getSubmittedAt() != null) {
+                int month = feedback.getSubmittedAt().getMonthValue();
+                feedbackCountByMonth.put(month, feedbackCountByMonth.get(month) + 1);
+            }
+        }
+
+        // Convert the map to a list of DataPoints
+        List<DataPoint> dataPoints = new ArrayList<>();
+        for (int month = 1; month <= 12; month++) {
+            dataPoints.add(new DataPoint(month, feedbackCountByMonth.get(month)));
+        }
+
+        return dataPoints;
     }
 
 }

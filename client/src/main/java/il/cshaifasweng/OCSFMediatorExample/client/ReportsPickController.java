@@ -20,6 +20,9 @@ public class ReportsPickController {
     private Button backButton;
 
     @FXML
+    private Label noNeedToPickARestaurantLabel;
+
+    @FXML
     private Button feedbackForTheChainButton;
 
     @FXML
@@ -101,6 +104,14 @@ public class ReportsPickController {
 
     @FXML
     public void initialize() {
+        String role = SimpleClient.getUserRole();
+        if(role.equals("chain manager")) {
+            feedbackForTheChainButton.setVisible(true);
+            noNeedToPickARestaurantLabel.setVisible(true);
+        }else {
+            feedbackForTheChainButton.setVisible(false);
+            noNeedToPickARestaurantLabel.setVisible(false);
+        }
         EventBus.getDefault().register(this);  // Register for EventBus updates
 
         messageLabel.setText("");
