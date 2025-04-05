@@ -191,9 +191,10 @@ public class MomServer extends AbstractServer {
             session.beginTransaction();
 
             List<Tables> tablesList = session.createQuery("FROM Tables", Tables.class).getResultList();
-            session.close();
 
             if (tablesList.isEmpty()) {
+                session.close();
+
                 addTables("Haifa",true);
                 addTables("Tel Aviv",true);
                 addTables("Nazareth",true);
