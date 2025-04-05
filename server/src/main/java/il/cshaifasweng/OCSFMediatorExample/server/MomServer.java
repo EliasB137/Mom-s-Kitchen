@@ -65,7 +65,7 @@ public class MomServer extends AbstractServer {
             if (restaurantList.isEmpty()) {
                 System.out.println("No restaurants found! Adding test restaurant...");
 
-                Restaurant restaurant = new Restaurant("Golden Gate Bites", "Downtown", Arrays.asList(
+                Restaurant restaurant = new Restaurant("Haifa", "Downtown", Arrays.asList(
                         "monday: 08:00-22:00",
                         "tuesday: 08:00-22:00",
                         "wednesday: 08:00-22:00",
@@ -75,6 +75,28 @@ public class MomServer extends AbstractServer {
                         "sunday: closed"
                 ));
                 session.save(restaurant);
+                session.flush();
+                Restaurant restaurant1 = new Restaurant("Tel Aviv", "Rothschild", Arrays.asList(
+                        "monday: 10:00-23:00",
+                        "tuesday: 10:00-23:00",
+                        "wednesday: 10:00-23:00",
+                        "thursday: 10:00-00:00",
+                        "friday: 12:00-01:00",
+                        "saturday: 12:00-01:00",
+                        "sunday: 10:00-22:00"
+                ));
+                session.save(restaurant1);
+                session.flush();
+                Restaurant restaurant2 = new Restaurant("Nazareth", "Market District", Arrays.asList(
+                        "monday: 08:00-20:00",
+                        "tuesday: 08:00-20:00",
+                        "wednesday: 08:00-20:00",
+                        "thursday: 08:00-20:00",
+                        "friday: 08:00-14:00",
+                        "saturday: closed",
+                        "sunday: 10:00-18:00"
+                ));
+                session.save(restaurant2);
                 session.flush();
 
                 System.out.println("Test restaurant added: " + restaurant.getName());
@@ -86,7 +108,7 @@ public class MomServer extends AbstractServer {
                     Dish dish = new Dish("Spaghetti Carbonara",
                             "Spaghetti, Eggs, Pecorino Romano cheese, pancetta, and black pepper",
                             Arrays.asList("No Pepper", "Extra Cheese", "No tomato"), "72",
-                            "https://cdn.loveandlemons.com/wp-content/uploads/2024/12/caesar-salad.jpg", true, Arrays.asList("Golden Gate Bites"));
+                            "https://cdn.loveandlemons.com/wp-content/uploads/2024/12/caesar-salad.jpg", true, Arrays.asList("Haifa","Tel Aviv"));
                     session.save(dish);
                     session.flush();
 
@@ -97,13 +119,52 @@ public class MomServer extends AbstractServer {
 
                     session.save(dish);
                     session.flush();
-                    dish = new Dish("test1", "Romaine lettuce, croutons, and Caesar dressing",
-                            Arrays.asList("No Pepper", "Extra Cheese", "No tomato"), "48",
-                            "https://cdn.loveandlemons.com/wp-content/uploads/2024/12/caesar-salad.jpg", false, Arrays.asList("All"));
-                    session.save(dish);
+
+                    Dish dish1 = new Dish("Margherita Pizza",
+                            "Tomato sauce, fresh mozzarella, and basil on a thin crust",
+                            Arrays.asList("Extra Basil", "Gluten-Free Crust", "No Cheese"), "58",
+                            "https://images.prismic.io/eataly-us/ed3fcec7-7994-426d-a5e4-a24be5a95afd_pizza-recipe-main.jpg?", true, Arrays.asList("Haifa", "Nazareth"));
+                    session.save(dish1);
                     session.flush();
 
+                    Dish dish2 = new Dish("Grilled Salmon",
+                            "Fresh salmon fillet grilled with lemon butter sauce and herbs",
+                            Arrays.asList("No Butter", "Extra Lemon", "Well Done"), "89",
+                            "https://www.rachelcooks.com/wp-content/uploads/2018/08/Grilled-Salmon-Recipe015-web.jpg", true, Arrays.asList("Tel Aviv", "Nazareth"));
+                    session.save(dish2);
+                    session.flush();
+                    Dish dish3 = new Dish("Vegan Buddha Bowl",
+                            "Quinoa, roasted sweet potato, chickpeas, avocado, tahini dressing",
+                            Arrays.asList("No Onion", "Extra Avocado", "Add Tofu"), "64",
+                            "https://simplyceecee.co/wp-content/uploads/2018/07/veganbuddhabowl-2-927x1024.jpg", true, Arrays.asList("Nazareth", "Haifa"));
+                    session.save(dish3);
+                    session.flush();
+                    Dish dish4 = new Dish("Chicken Schnitzel",
+                            "Breaded chicken breast, fried to golden perfection, served with fries",
+                            Arrays.asList("No Fries", "Extra Mayo", "Gluten-Free"), "69",
+                            "https://www.seriouseats.com/thmb/3ooofB9dxVfGHkyBRjhllX_u3iw=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/chicken-schnitzel-recipe-hero-01-a4f70a4ba8aa453c89214362b97a544d.jpg", true, Arrays.asList( "Tel Aviv"));
                     System.out.println("Test dish added: " + dish.getName());
+                    session.save(dish4);
+                    session.flush();
+                    Dish dish5 = new Dish("Falafel Plate",
+                            "Crispy falafel balls served with hummus, pita, and fresh vegetables",
+                            Arrays.asList("No Onion", "Extra Hummus", "Spicy Sauce"), "45",
+                            "https://c8.alamy.com/comp/2RYM59K/plate-of-fried-falafel-balls-served-with-fresh-green-cilantro-and-lemon-top-view-on-rustic-concrete-background-traditional-veg-2RYM59K.jpg", true, Arrays.asList("All"));
+                    session.save(dish5);
+                    session.flush();
+                    Dish dish6 = new Dish("Lamb Shawarma",
+                            "Marinated lamb strips, served in a pita with tahini and salad",
+                            Arrays.asList("No Tahini", "Extra Pickles", "Spicy"), "75",
+                            "https://www.feastingathome.com/wp-content/uploads/2018/12/lamb-shawarma-wrap.jpg", true, Arrays.asList("Tel Aviv", "Nazareth"));
+                    session.save(dish6);
+                    session.flush();
+
+                    Dish dish7 = new Dish("Eggplant Parmigiana",
+                            "Baked eggplant slices with tomato sauce and mozzarella cheese",
+                            Arrays.asList("No Cheese", "Extra Sauce", "Add Basil"), "63",
+                            "https://www.giallozafferano.com/images/260-26066/Eggplant-parmigiana_1200x800.jpg", true, Arrays.asList("Nazareth", "Haifa"));
+                    session.save(dish7);
+                    session.flush();
 
                     session.flush();
 
@@ -130,35 +191,21 @@ public class MomServer extends AbstractServer {
             session.beginTransaction();
 
             List<Tables> tablesList = session.createQuery("FROM Tables", Tables.class).getResultList();
+            session.close();
+
             if (tablesList.isEmpty()) {
-                Query<Restaurant> query = session.createQuery("FROM Restaurant WHERE name = :name", Restaurant.class);
-                query.setParameter("name", "Golden Gate Bites");
-                Restaurant restaurantAddTableTo = query.uniqueResult();
+                addTables("Haifa",true);
+                addTables("Tel Aviv",true);
+                addTables("Nazareth",true);
+                addTables("Haifa",false);
+                addTables("Tel Aviv",false);
+                addTables("Nazareth",false);
 
-                System.out.println("No tables found! Adding test tables...");
-                Tables table = new Tables(2, true, "Golden Gate Bites");
-                session.save(table);
-                session.flush();
+                sessionFactory = getSessionFactory();
+                session = sessionFactory.openSession();
+                session.beginTransaction();
 
-                restaurantAddTableTo.addTable(table.getId());
-                session.update(restaurantAddTableTo);
-
-                table = new Tables(3, true, "Golden Gate Bites");
-                session.save(table);
-                session.flush();
-
-                restaurantAddTableTo.addTable(table.getId());
-                session.update(restaurantAddTableTo);
-
-                table = new Tables(4, true, "Golden Gate Bites");
-                session.save(table);
-                session.flush();
-
-                restaurantAddTableTo.addTable(table.getId());
-                session.update(restaurantAddTableTo);
-
-
-                User user = new User("restaurant manager", "restaurant manager", "restaurant manager", "Golden Gate Bites");
+                User user = new User("restaurant manager", "restaurant manager", "restaurant manager", "Haifa");
                 session.save(user);
                 session.flush();
                 user = new User("chain manager", "chain manager", "chain manager", "");
@@ -174,7 +221,6 @@ public class MomServer extends AbstractServer {
                 session.save(user);
                 session.flush();
 
-                System.out.println("Linked " + table.getId() + " to " + restaurantAddTableTo.getName());
             }
             session.getTransaction().commit();
         } catch (Exception e) {
@@ -195,20 +241,22 @@ public class MomServer extends AbstractServer {
             session = sessionFactory.openSession();
             session.beginTransaction();
 
-            List<Reservation> tablesList = session.createQuery("FROM Reservation ", Reservation.class).getResultList();
-            if (tablesList.isEmpty()) {
+            List<Reservation> reservationList = session.createQuery("FROM Reservation ", Reservation.class).getResultList();
+            if (reservationList.isEmpty()) {
                 Query<Tables> query = session.createQuery("FROM Tables WHERE id = :id", Tables.class);
-                query.setParameter("id", 2);
+                query.setParameter("id", 14);
                 Tables tableAddReservationTo = query.uniqueResult();
 
-                Reservation reservation = new Reservation(Arrays.asList(2), "2025-04-04", "10:00", "Golden Gate Bites", "tony", "tonysabbah@gmail.com", "123412341234,123", "1234567890", 3, "213991516");
-                session.save(reservation);
-                session.flush();
+                for (int i = 1; i < 4; i++) {
+                    for(int j = 0; j < i*i; j++) {
+                        Reservation reservation = new Reservation(Arrays.asList(2), "2025-0" + i + "-04", "1"+ j +":00", "Haifa", "tony", "tonysabbah@gmail.com", "123412341234,123", "1234567890", 3, "213991516");
+                        session.save(reservation);
+                        session.flush();
+                        tableAddReservationTo.addReservation(reservation.getId());
+                        session.update(tableAddReservationTo);
+                    }
+                }
 
-                tableAddReservationTo.addReservation(reservation.getId());
-                session.update(tableAddReservationTo);
-
-                System.out.println("Linked " + reservation.getId() + " to " + tableAddReservationTo.getId());
             }
             session.getTransaction().commit();
         } catch (Exception e) {
@@ -223,10 +271,7 @@ public class MomServer extends AbstractServer {
             }
         }
 
-
     }
-
-
 
 
 
@@ -1377,7 +1422,7 @@ public class MomServer extends AbstractServer {
         session.beginTransaction();
 
         Query<Restaurant> query = session.createQuery("FROM Restaurant WHERE name = :name", Restaurant.class);
-        query.setParameter("name", "Golden Gate Bites");
+        query.setParameter("name", restaurantName);
         Restaurant restaurant = query.uniqueResult(); // Returns null if not found, or the restaurant if found
 
         Hibernate.initialize(restaurant.getOpeningHours());
@@ -1701,6 +1746,46 @@ public class MomServer extends AbstractServer {
         session.close();
 
         return reservations;
+    }
+
+    private void addTables(String restaurantName, boolean inOrOut){
+        SessionFactory sessionFactory = getSessionFactory();
+        session = sessionFactory.openSession();
+        session.beginTransaction();
+
+        Query<Restaurant> query = session.createQuery("FROM Restaurant WHERE name = :name", Restaurant.class);
+        query.setParameter("name", restaurantName);
+        Restaurant restaurantAddTableTo = query.uniqueResult();
+
+        // 8 tables with 2 seats
+        for (int i = 0; i < 4; i++) {
+            Tables table = new Tables(2, inOrOut, restaurantName);
+            session.save(table);
+            session.flush();
+            restaurantAddTableTo.addTable(table.getId());
+            session.update(restaurantAddTableTo);
+        }
+
+        // 5 tables with 4 seats
+        for (int i = 0; i < 5; i++) {
+            Tables table = new Tables(4, inOrOut, restaurantName);
+            session.save(table);
+            session.flush();
+            restaurantAddTableTo.addTable(table.getId());
+            session.update(restaurantAddTableTo);
+        }
+
+        // 6 tables with 3 seats
+        for (int i = 0; i < 3; i++) {
+            Tables table = new Tables(3, inOrOut, restaurantName);
+            session.save(table);
+            session.flush();
+            restaurantAddTableTo.addTable(table.getId());
+            session.update(restaurantAddTableTo);
+        }
+
+        session.close();
+
     }
 
 }
