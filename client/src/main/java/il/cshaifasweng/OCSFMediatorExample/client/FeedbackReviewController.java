@@ -28,6 +28,7 @@ public class FeedbackReviewController {
     @FXML private ComboBox<String> filterComboBox;
     @FXML private CheckBox compensatedFilterCheckbox;
     @FXML private Button backButton;
+    @FXML private Label errorLabel;
 
     private ObservableList<FeedbackDTO> allFeedbacks = FXCollections.observableArrayList();
     private FeedbackDTO selectedFeedback;
@@ -53,7 +54,12 @@ public class FeedbackReviewController {
         filterComboBox.setItems(FXCollections.observableArrayList("All", "Responded", "Not Responded"));
         filterComboBox.setValue("All");
 
-        filterComboBox.setOnAction(e -> applyFilters());
+        compensatedFilterCheckbox.setVisible(false);
+        filterComboBox.setOnAction(e -> {
+            String selected = filterComboBox.getValue();
+            compensatedFilterCheckbox.setVisible("Responded".equals(selected));
+            applyFilters();
+        });
         compensatedFilterCheckbox.setOnAction(e -> applyFilters());
 
         feedbackTable.setOnMouseClicked(this::handleFeedbackSelection);
@@ -92,8 +98,19 @@ public class FeedbackReviewController {
     private void handleFeedbackSelection(MouseEvent event) {
         selectedFeedback = feedbackTable.getSelectionModel().getSelectedItem();
         if (selectedFeedback != null) {
-            feedbackToRespond = selectedFeedback; // Set the selected feedback statically
-            SimpleClient.getClient().navigateTo("FeedbackResponseView"); // Navigate to response UI
+            if(selectedFeedback.getResponded())
+            {
+              //  System.out.println("Responded already, cant send another response");
+                errorLabel.setText("This feedback has already been responded to!");
+                errorLabel.setStyle("-fx-text-fill: #ff0000; -fx-font-weight: bold;");
+
+            }
+            else {
+                errorLabel.setText(""); // clear previous messages
+                feedbackToRespond = selectedFeedback; // Set the selected feedback statically
+                SimpleClient.getClient().navigateTo("FeedbackResponseView"); // Navigate to response UI
+            }
+
         }
     }
 

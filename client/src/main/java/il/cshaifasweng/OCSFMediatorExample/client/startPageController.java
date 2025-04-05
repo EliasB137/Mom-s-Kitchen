@@ -10,11 +10,21 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Alert;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
+import javafx.fxml.FXML;
+import javafx.scene.image.Image;
+import javafx.scene.layout.*;
+import javafx.scene.paint.ImagePattern;
+import javafx.geometry.Insets;
+
 
 import java.io.IOException;
 import java.util.List;
 
 public class startPageController {
+
+
+
+
 
     @FXML
     private ChoiceBox<String> restaurantChoiceBox;
@@ -37,6 +47,14 @@ public class startPageController {
     @FXML
     private Label statusLabel;
 
+    @FXML
+    private AnchorPane rootPane;
+
+    @FXML
+    private Region backgroundRegion;
+
+
+
     private ObservableList<String> restaurantList = FXCollections.observableArrayList();
 
     public startPageController() {
@@ -47,6 +65,22 @@ public class startPageController {
     public void initialize() {
         System.out.println("StartPageController Initialized!");
 
+        //Desgin
+        // Load the image from resources
+        Image image = new Image(getClass().getResource("/il/cshaifasweng/OCSFMediatorExample/client/startpageViewBG.jpeg").toExternalForm());
+
+        // Create an ImagePattern and set it as background
+        BackgroundFill backgroundFill = new BackgroundFill(
+                new ImagePattern(image),
+                CornerRadii.EMPTY,
+                Insets.EMPTY
+        );
+        Background background = new Background(backgroundFill);
+        backgroundRegion.setBackground(background);
+
+
+        //
+
         restaurantChoiceBox.setItems(restaurantList);
         requestRestaurantList();
         viewOrderButton.setOnAction(event -> { onClose(); SimpleClient.getClient().navigateTo("viewOrdersView");});
@@ -54,6 +88,7 @@ public class startPageController {
         adminSignInButton.setOnAction(event -> {onClose(); SimpleClient.getClient().navigateTo("adminSignInView");});
         continueButton.setOnAction(event -> handleContinue());
         exitButton.setOnAction(event -> exitApplication());
+
     }
 
 

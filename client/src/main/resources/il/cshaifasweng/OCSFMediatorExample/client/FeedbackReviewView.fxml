@@ -23,6 +23,8 @@
             </columns>
         </TableView>
 
+        <Label fx:id="errorLabel" text="" textFill="red" style="-fx-font-weight: bold;" />
+
         <!-- Filter Options -->
         <HBox spacing="10">
             <Label text="Filter by:"/>
