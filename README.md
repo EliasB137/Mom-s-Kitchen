@@ -341,21 +341,5 @@ java -jar server/build/libs/server-*.jar
 - Offline client reconnect → receives missed updates (if supported) or full refresh.
 
 
-## Roadmap / Known Issues
-- **Bug**: Approved restaurant‑list changes not applied to `Dish` entity in some flows → verify server mutation & client refresh for `RESTaurants` type in `RequestedChangesDTO`.
-- **Broadcast polishing**: Ensure that all client views listen and reconcile when events arrive (add/update/scope change).
-- **Checkout polish**: Input validation, masked CC entry, and clearer error messages.
-- **Audit logging**: Track who approved what, when.
-- **Persistence**: Consider JSON columns for preferences/restaurants when supported, or normalize via join tables.
 
-
-## Contributing
-1. Fork & create a feature branch.
-2. Add/modify tests where relevant.
-3. Follow existing code style (Java 17, FXML separation, DTO boundaries).
-4. Open a PR describing the change and rationale.
-
-
-## License
-TBD. Add your chosen license (e.g., MIT/Apache-2.0) at the repository root.
 
