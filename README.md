@@ -24,11 +24,6 @@ A JavaFX-based restaurant management and ordering system with role-based workflo
   - [Manager → Approve Request](#manager--approve-request)
   - [Customer → Checkout & Refund Policy](#customer--checkout--refund-policy)
 - [Events & Payloads](#events--payloads)
-- [Testing](#testing)
-- [Roadmap / Known Issues](#roadmap--known-issues)
-- [Contributing](#contributing)
-- [License](#license)
-
 ---
 
 ## Overview
